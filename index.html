@@ -1,0 +1,897 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
+  <title>Liability Waiver — Auric by Niara</title>  
+  <style>  
+    /* ===== RESET & BASE ===== */  
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {  
+      scroll-behavior: smooth;  
+    }
+
+    body {  
+      font-family: 'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif;  
+      background: linear-gradient(135deg, #fdfbf7 0%, #f5f0e8 50%, #fdfbf7 100%);  
+      color: #2c2420;  
+      min-height: 100vh;  
+      line-height: 1.6;  
+      font-size: 1rem;  
+    }
+
+    /* ===== SKIP LINK (ADA) ===== */  
+    .skip-link {  
+      position: absolute;  
+      top: -100%;  
+      left: 1rem;  
+      background: #5c4a3a;  
+      color: #fff;  
+      padding: 0.75rem 1.25rem;  
+      border-radius: 0 0 8px 8px;  
+      z-index: 1000;  
+      font-size: 1rem;  
+      text-decoration: none;  
+      transition: top 0.2s;  
+    }  
+    .skip-link:focus {  
+      top: 0;  
+      outline: 3px solid #c8956c;  
+      outline-offset: 2px;  
+    }
+
+    /* ===== FOCUS STYLES (ADA) ===== */  
+    :focus-visible {  
+      outline: 3px solid #b07840;  
+      outline-offset: 3px;  
+      border-radius: 4px;  
+    }
+
+    /* ===== HEADER ===== */  
+    header {  
+      background: linear-gradient(135deg, #5c4a3a 0%, #7a6350 100%);  
+      color: #fdfbf7;  
+      padding: 1.5rem 2rem;  
+      text-align: center;  
+    }  
+    header .brand {  
+      font-size: 0.85rem;  
+      letter-spacing: 3px;  
+      text-transform: uppercase;  
+      opacity: 0.85;  
+      margin-bottom: 0.25rem;  
+    }  
+    header h1 {  
+      font-size: 1.75rem;  
+      font-weight: 300;  
+      letter-spacing: 1px;  
+    }
+
+    /* ===== MAIN CONTAINER ===== */  
+    main {  
+      max-width: 720px;  
+      margin: 2rem auto;  
+      padding: 0 1.25rem 3rem;  
+    }
+
+    /* ===== CARD ===== */  
+    .card {  
+      background: #ffffff;  
+      border: 1px solid #e8e0d5;  
+      border-radius: 16px;  
+      padding: 2.5rem 2rem;  
+      margin-bottom: 1.5rem;  
+      box-shadow: 0 2px 12px rgba(92, 74, 58, 0.06);  
+    }
+
+    .card h2 {  
+      font-size: 1.35rem;  
+      color: #5c4a3a;  
+      margin-bottom: 0.5rem;  
+      font-weight: 600;  
+    }  
+    .card p.subtitle {  
+      color: #7a6e63;  
+      font-size: 0.95rem;  
+      margin-bottom: 1.75rem;  
+    }
+
+    /* ===== FORM ELEMENTS ===== */  
+    label {  
+      display: block;  
+      font-weight: 600;  
+      margin-bottom: 0.4rem;  
+      color: #3d322a;  
+      font-size: 0.95rem;  
+    }  
+    label .required {  
+      color: #c0392b;  
+      margin-left: 2px;  
+      font-weight: 700;  
+    }  
+    .sr-only {  
+      position: absolute;  
+      width: 1px;  
+      height: 1px;  
+      padding: 0;  
+      margin: -1px;  
+      overflow: hidden;  
+      clip: rect(0,0,0,0);  
+      border: 0;  
+    }
+
+    input[type="text"] {  
+      width: 100%;  
+      padding: 0.85rem 1rem;  
+      border: 2px solid #d5ccc1;  
+      border-radius: 10px;  
+      font-size: 1rem;  
+      color: #2c2420;  
+      background: #fdfbf7;  
+      transition: border-color 0.2s, box-shadow 0.2s;  
+    }  
+    input[type="text"]:focus {  
+      border-color: #b07840;  
+      box-shadow: 0 0 0 3px rgba(176, 120, 64, 0.2);  
+      outline: none;  
+    }  
+    input[type="text"]::placeholder {  
+      color: #a89e94;  
+    }
+
+    /* Error message styling */  
+    .error-msg {  
+      color: #c0392b;  
+      font-size: 0.875rem;  
+      margin-top: 0.35rem;  
+      min-height: 1.25rem;  
+    }
+
+    /* ===== BUTTONS ===== */  
+    .btn {  
+      display: inline-flex;  
+      align-items: center;  
+      gap: 0.5rem;  
+      padding: 0.85rem 1.75rem;  
+      border: none;  
+      border-radius: 10px;  
+      font-size: 1rem;  
+      font-weight: 600;  
+      cursor: pointer;  
+      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;  
+      text-decoration: none;  
+    }  
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {  
+      background: linear-gradient(135deg, #b07840, #c8956c);  
+      color: #fff;  
+      box-shadow: 0 2px 8px rgba(176, 120, 64, 0.25);  
+    }  
+    .btn-primary:hover, .btn-primary:focus-visible {  
+      background: linear-gradient(135deg, #9a6630, #b07840);  
+      box-shadow: 0 4px 16px rgba(176, 120, 64, 0.35);  
+    }  
+    .btn-primary:disabled {  
+      opacity: 0.5;  
+      cursor: not-allowed;  
+      transform: none;  
+    }
+
+    .btn-secondary {  
+      background: #eee7dd;  
+      color: #5c4a3a;  
+    }  
+    .btn-secondary:hover, .btn-secondary:focus-visible {  
+      background: #e0d6c9;  
+    }
+
+    .btn-danger {  
+      background: #c0392b;  
+      color: #fff;  
+    }  
+    .btn-danger:hover, .btn-danger:focus-visible {  
+      background: #a93226;  
+    }
+
+    /* ===== PROGRESS BAR ===== */  
+    .progress-section {  
+      margin-bottom: 1.5rem;  
+    }  
+    .progress-label {  
+      display: flex;  
+      justify-content: space-between;  
+      font-size: 0.9rem;  
+      color: #5c4a3a;  
+      margin-bottom: 0.5rem;  
+      font-weight: 600;  
+    }  
+    .progress-track {  
+      width: 100%;  
+      height: 12px;  
+      background: #e8e0d5;  
+      border-radius: 6px;  
+      overflow: hidden;  
+    }  
+    .progress-fill {  
+      height: 100%;  
+      background: linear-gradient(90deg, #b07840, #c8956c);  
+      border-radius: 6px;  
+      transition: width 0.4s ease;  
+      width: 0%;  
+    }
+
+    /* ===== CLAUSES ===== */  
+    .clause {  
+      display: flex;  
+      align-items: flex-start;  
+      gap: 0.85rem;  
+      padding: 1rem;  
+      border: 2px solid #e8e0d5;  
+      border-radius: 12px;  
+      margin-bottom: 0.75rem;  
+      background: #fdfbf7;  
+      transition: border-color 0.2s, background 0.2s;  
+    }  
+    .clause:hover {  
+      border-color: #d5ccc1;  
+    }  
+    .clause.checked {  
+      border-color: #b07840;  
+      background: #faf5ee;  
+    }  
+    .clause input[type="checkbox"] {  
+      width: 22px;  
+      height: 22px;  
+      min-width: 22px;  
+      margin-top: 2px;  
+      accent-color: #b07840;  
+      cursor: pointer;  
+    }  
+    .clause .clause-text {  
+      font-size: 0.93rem;  
+      color: #3d322a;  
+      line-height: 1.55;  
+    }  
+    .clause .clause-num {  
+      font-weight: 700;  
+      color: #b07840;  
+      margin-right: 0.25rem;  
+    }
+
+    /* ===== SIGNATURE AREA ===== */  
+    .sig-section {  
+      margin-top: 1.5rem;  
+      padding-top: 1.5rem;  
+      border-top: 2px solid #e8e0d5;  
+    }  
+    .sig-section .statement {  
+      background: #faf5ee;  
+      border-left: 4px solid #b07840;  
+      padding: 1.25rem 1.5rem;  
+      border-radius: 0 10px 10px 0;  
+      margin-bottom: 1.25rem;  
+      font-size: 0.95rem;  
+      color: #3d322a;  
+      line-height: 1.6;  
+    }
+
+    .final-check {  
+      display: flex;  
+      align-items: center;  
+      gap: 0.75rem;  
+      padding: 1rem;  
+      background: #faf5ee;  
+      border-radius: 10px;  
+      margin-bottom: 1.25rem;  
+    }  
+    .final-check input[type="checkbox"] {  
+      width: 22px;  
+      height: 22px;  
+      min-width: 22px;  
+      accent-color: #b07840;  
+      cursor: pointer;  
+    }  
+    .final-check label {  
+      margin-bottom: 0;  
+      font-weight: 500;  
+      cursor: pointer;  
+    }
+
+    /* ===== SUCCESS SCREEN ===== */  
+    .success-card {  
+      text-align: center;  
+      padding: 3rem 2rem;  
+    }  
+    .success-card .checkmark {  
+      font-size: 3.5rem;  
+      margin-bottom: 1rem;  
+    }  
+    .success-card h2 {  
+      text-align: center;  
+      color: #2e7d32;  
+      margin-bottom: 0.5rem;  
+    }  
+    .success-card .detail {  
+      color: #5c4a3a;  
+      font-size: 0.95rem;  
+      margin-bottom: 0.35rem;  
+    }  
+    .success-card .note {  
+      background: #faf5ee;  
+      padding: 1rem;  
+      border-radius: 10px;  
+      font-size: 0.9rem;  
+      color: #7a6e63;  
+      margin-top: 1.5rem;  
+      margin-bottom: 1.5rem;  
+    }  
+    .success-actions {  
+      display: flex;  
+      gap: 0.75rem;  
+      justify-content: center;  
+      flex-wrap: wrap;  
+      margin-top: 1rem;  
+    }
+
+    /* ===== DASHBOARD PANEL ===== */  
+    .dashboard-card {  
+      background: #fff;  
+      border: 1px solid #e8e0d5;  
+      border-radius: 16px;  
+      padding: 2rem;  
+      margin-bottom: 1.5rem;  
+      box-shadow: 0 2px 12px rgba(92,74,58,0.06);  
+    }  
+    .dashboard-card h2 {  
+      font-size: 1.2rem;  
+      color: #5c4a3a;  
+      margin-bottom: 1rem;  
+    }  
+    .submission-item {  
+      display: flex;  
+      justify-content: space-between;  
+      align-items: center;  
+      padding: 0.85rem 1rem;  
+      background: #fdfbf7;  
+      border: 1px solid #e8e0d5;  
+      border-radius: 10px;  
+      margin-bottom: 0.5rem;  
+      flex-wrap: wrap;  
+      gap: 0.5rem;  
+    }  
+    .submission-item .name {  
+      font-weight: 600;  
+      color: #3d322a;  
+    }  
+    .submission-item .time {  
+      font-size: 0.85rem;  
+      color: #7a6e63;  
+    }  
+    .empty-state {  
+      text-align: center;  
+      padding: 2rem;  
+      color: #a89e94;  
+      font-style: italic;  
+    }
+
+    /* ===== LIVE REGION (ADA) ===== */  
+    [aria-live] {  
+      /* Screen readers pick these up */  
+    }
+
+    /* ===== EMAIL BANNER ===== */  
+    .email-banner {  
+      background: #fef9e7;  
+      border: 1px solid #f0dca0;  
+      border-radius: 10px;  
+      padding: 0.85rem 1.25rem;  
+      font-size: 0.9rem;  
+      color: #7a6320;  
+      margin-bottom: 1.5rem;  
+      display: flex;  
+      align-items: flex-start;  
+      gap: 0.5rem;  
+    }  
+    .email-banner .icon { font-size: 1.1rem; }
+
+    /* ===== FOOTER ===== */  
+    footer {  
+      text-align: center;  
+      padding: 1.5rem;  
+      font-size: 0.8rem;  
+      color: #a89e94;  
+      border-top: 1px solid #e8e0d5;  
+      margin-top: 2rem;  
+    }
+
+    /* ===== RESPONSIVE ===== */  
+    @media (max-width: 600px) {  
+      .card { padding: 1.5rem 1.25rem; }  
+      header h1 { font-size: 1.35rem; }  
+      .success-actions { flex-direction: column; }  
+      .success-actions .btn { width: 100%; justify-content: center; }  
+    }
+
+    /* ===== HIGH CONTRAST MODE ===== */  
+    @media (forced-colors: active) {  
+      .btn { border: 2px solid ButtonText; }  
+      .progress-fill { background: Highlight; }  
+      .clause.checked { border-color: Highlight; }  
+    }  
+  </style>  
+</head>  
+<body>
+
+  <!-- Skip Navigation Link (ADA requirement) -->  
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Live region for screen reader announcements -->  
+  <div id="sr-announce" aria-live="polite" aria-atomic="true" class="sr-only" role="status"></div>
+
+  <header role="banner">  
+    <div class="brand">AURIC</div>  
+    <h1>by Niara</h1>  
+  </header>
+
+  <main id="main-content" role="main">
+
+    <!-- ============================== -->  
+    <!-- STEP 1: Enter Name             -->  
+    <!-- ============================== -->  
+    <section id="step-name" class="card" aria-labelledby="step-name-heading">  
+      <h2 id="step-name-heading">Liability Waiver</h2>  
+      <p class="subtitle">Before your session, please review and sign this waiver. Start by entering your full legal name.</p>
+
+      <form id="name-form" novalidate>  
+        <label for="full-name">  
+          Full Legal Name <span class="required" aria-hidden="true">*</span>  
+          <span class="sr-only">(required)</span>  
+        </label>  
+        <input  
+          type="text"  
+          id="full-name"  
+          name="fullName"  
+          required  
+          autocomplete="name"  
+          placeholder="Enter your full legal name"  
+          aria-describedby="name-error"  
+          aria-invalid="false"  
+        />  
+        <div id="name-error" class="error-msg" role="alert" aria-live="assertive"></div>
+
+        <div style="margin-top: 1.25rem; text-align: right;">  
+          <button type="submit" class="btn btn-primary">  
+            Continue to Waiver →  
+          </button>  
+        </div>  
+      </form>  
+    </section>
+
+    <!-- ============================== -->  
+    <!-- STEP 2: Waiver Clauses         -->  
+    <!-- ============================== -->  
+    <section id="step-waiver" class="card" style="display:none;" aria-labelledby="step-waiver-heading">  
+      <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">  
+        <h2 id="step-waiver-heading">Liability Waiver & Release</h2>  
+        <span style="font-size: 0.9rem; color: #7a6e63;">Signing as <strong id="display-name-top"></strong></span>  
+      </div>  
+      <p class="subtitle">Read each clause carefully and check the box to confirm your understanding. All 18 clauses must be acknowledged before signing.</p>
+
+      <!-- Progress -->  
+      <div class="progress-section" role="group" aria-labelledby="progress-text">  
+        <div class="progress-label">  
+          <span id="progress-text"><span id="confirmed-count">0</span>/18 confirmed</span>  
+          <span id="remaining-text">18 clauses remaining</span>  
+        </div>  
+        <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="18" aria-label="Clause confirmation progress">  
+          <div class="progress-fill" id="progress-fill"></div>  
+        </div>  
+      </div>
+
+      <!-- Clauses Container -->  
+      <div id="clauses-container" role="group" aria-label="Waiver clauses">  
+        <!-- Clauses are injected via JS -->  
+      </div>
+
+      <!-- Signature Section -->  
+      <div class="sig-section" id="sig-section">  
+        <div class="statement">  
+          I, <strong id="display-name-statement"></strong>, acknowledge that I have carefully read and fully understand this Liability Waiver & Release. I understand that I am giving up substantial legal rights, including the right to sue. I sign this agreement freely and voluntarily, without any inducement.  
+        </div>
+
+        <div class="final-check">  
+          <input type="checkbox" id="final-agree" aria-describedby="final-agree-label" disabled />  
+          <label for="final-agree" id="final-agree-label">I have read, understood, and agree to all terms above</label>  
+        </div>
+
+        <label for="sig-input">  
+          Digital Signature — Type your full name <span class="required" aria-hidden="true">*</span>  
+          <span class="sr-only">(required)</span>  
+        </label>  
+        <input  
+          type="text"  
+          id="sig-input"  
+          required  
+          autocomplete="name"  
+          placeholder="Type your full legal name to sign"  
+          aria-describedby="sig-error"  
+          aria-invalid="false"  
+          disabled  
+        />  
+        <div id="sig-error" class="error-msg" role="alert" aria-live="assertive"></div>
+
+        <div style="margin-top: 1.25rem; text-align: right;">  
+          <button type="button" id="submit-btn" class="btn btn-primary" disabled aria-disabled="true">  
+            Submit Signed Waiver ✦  
+          </button>  
+        </div>  
+      </div>  
+    </section>
+
+    <!-- ============================== -->  
+    <!-- STEP 3: Success                -->  
+    <!-- ============================== -->  
+    <section id="step-success" class="card success-card" style="display:none;" aria-labelledby="success-heading">  
+      <div class="checkmark" aria-hidden="true">✦</div>  
+      <h2 id="success-heading">Waiver Signed</h2>  
+      <p class="detail"><strong>Participant:</strong> <span id="success-name"></span></p>  
+      <p class="detail"><strong>Signed at:</strong> <span id="success-time"></span></p>  
+      <p class="detail"><strong>Clauses agreed:</strong> All 18 confirmed</p>
+
+      <div class="note">  
+        <p>📧 <strong>Email not configured yet</strong></p>  
+        <p>Submissions are saved to the Dashboard below. To also receive emails, update the EmailJS config in the <code><script></code> section.</p>  
+      </div>  
+      <p style="color:#5c4a3a; font-size:0.95rem;">Your instructor has been notified. See you on the mat.</p>
+
+      <div class="success-actions">  
+        <button type="button" class="btn btn-primary" onclick="resetForm()" aria-label="Start a new participant waiver">  
+          New Participant →  
+        </button>  
+      </div>  
+    </section>
+
+    <!-- ============================== -->  
+    <!-- Dashboard                      -->  
+    <!-- ============================== -->  
+    <section class="dashboard-card" aria-labelledby="dashboard-heading">  
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">  
+        <h2 id="dashboard-heading">Waiver Submissions</h2>  
+        <button type="button" class="btn btn-danger" id="clear-all-btn" onclick="clearAll()" style="font-size: 0.85rem; padding: 0.5rem 1rem;">  
+          Clear All  
+        </button>  
+      </div>  
+      <div id="submissions-list">  
+        <div class="empty-state">No submissions yet.</div>  
+      </div>  
+    </section>
+
+    <div class="email-banner" role="note">  
+      <span class="icon" aria-hidden="true">📧</span>  
+      <span>Submissions are saved locally in your browser. To also receive email notifications, configure EmailJS in the script section of this page.</span>  
+    </div>
+
+  </main>
+
+  <footer role="contentinfo">  
+    Auric by Niara · Confidential & Secure  
+  </footer>
+
+  <script>  
+    // ============================================  
+    // UTILITIES  
+    // ============================================  
+    function announce(msg) {  
+      const el = document.getElementById('sr-announce');  
+      el.textContent = '';  
+      setTimeout(() => { el.textContent = msg; }, 100);  
+    }
+
+    // ============================================  
+    // WAIVER CLAUSE CONTENT  
+    // ============================================  
+    const clauseTexts = [  
+      "I understand that participation in wellness, movement, and/or energy-based sessions offered by Auric by Niara involves physical activity and inherent risks, including but not limited to muscle strain, sprains, fractures, and other injuries.",  
+      "I acknowledge that I am voluntarily participating in these sessions and assume all risks of injury or harm that may result from my participation, whether foreseeable or unforeseeable.",  
+      "I represent that I am physically and mentally fit to participate and have no medical conditions that would prevent safe participation, or I have obtained clearance from a licensed healthcare provider.",  
+      "I agree to disclose any known medical conditions, allergies, injuries, or physical limitations to my instructor before each session.",  
+      "I understand that the instructors and staff of Auric by Niara are not licensed medical professionals and that no session is a substitute for professional medical advice, diagnosis, or treatment.",  
+      "I agree to follow all instructions, safety guidelines, and rules provided by Auric by Niara staff during sessions.",  
+      "I understand that I may stop participation at any time if I feel pain, discomfort, or distress, and I agree to immediately notify my instructor.",  
+      "I release, discharge, and hold harmless Auric by Niara, its owners, instructors, employees, agents, and affiliates from any and all claims, liabilities, damages, or expenses arising from my participation.",  
+      "I waive any right to bring a lawsuit or legal claim against Auric by Niara, its owners, instructors, employees, agents, or affiliates for any injury, illness, or loss sustained during or as a result of my participation.",  
+      "I understand that this waiver extends to any claims arising from the negligence of Auric by Niara, its owners, instructors, employees, agents, or affiliates, excluding gross negligence or willful misconduct.",  
+      "I consent to the use of any photographs, video recordings, or audio recordings taken during sessions for promotional, educational, or marketing purposes by Auric by Niara, unless I submit a written opt-out request.",  
+      "I understand that personal belongings brought to sessions are my responsibility and that Auric by Niara is not liable for any lost, stolen, or damaged items.",  
+      "I agree that any disputes arising from this waiver or my participation shall be resolved through binding arbitration in accordance with the rules of the American Arbitration Association, and not through court litigation.",  
+      "I acknowledge that this waiver is governed by and construed in accordance with the laws of the state in which Auric by Niara operates.",  
+      "I understand that if any provision of this waiver is found to be unenforceable, the remaining provisions shall remain in full force and effect.",  
+      "I confirm that I am at least 18 years of age, or that I have obtained parental or guardian consent if I am a minor.",  
+      "I agree that this waiver remains in effect for all future sessions and activities with Auric by Niara unless I submit a written revocation.",  
+      "I acknowledge that I have had sufficient opportunity to read this waiver, ask questions, and seek independent legal advice before signing."  
+    ];
+
+    // ============================================  
+    // STATE  
+    // ============================================  
+    let participantName = '';  
+    let checkedClauses = new Set();
+
+    // ============================================  
+    // DOM REFERENCES  
+    // ============================================  
+    const stepName = document.getElementById('step-name');  
+    const stepWaiver = document.getElementById('step-waiver');  
+    const stepSuccess = document.getElementById('step-success');  
+    const nameForm = document.getElementById('name-form');  
+    const fullNameInput = document.getElementById('full-name');  
+    const nameError = document.getElementById('name-error');  
+    const clausesContainer = document.getElementById('clauses-container');  
+    const confirmedCount = document.getElementById('confirmed-count');  
+    const remainingText = document.getElementById('remaining-text');  
+    const progressFill = document.getElementById('progress-fill');  
+    const progressTrack = document.querySelector('.progress-track');  
+    const finalAgree = document.getElementById('final-agree');  
+    const sigInput = document.getElementById('sig-input');  
+    const sigError = document.getElementById('sig-error');  
+    const submitBtn = document.getElementById('submit-btn');
+
+    // ============================================  
+    // STEP 1: NAME FORM  
+    // ============================================  
+    nameForm.addEventListener('submit', function(e) {  
+      e.preventDefault();  
+      const name = fullNameInput.value.trim();  
+      if (!name) {  
+        nameError.textContent = 'Please enter your full legal name.';  
+        fullNameInput.setAttribute('aria-invalid', 'true');  
+        fullNameInput.focus();  
+        return;  
+      }  
+      if (name.length < 2) {  
+        nameError.textContent = 'Name must be at least 2 characters.';  
+        fullNameInput.setAttribute('aria-invalid', 'true');  
+        fullNameInput.focus();  
+        return;  
+      }  
+      nameError.textContent = '';  
+      fullNameInput.setAttribute('aria-invalid', 'false');  
+      participantName = name;
+
+      // Populate name displays  
+      document.getElementById('display-name-top').textContent = name;  
+      document.getElementById('display-name-statement').textContent = name;
+
+      // Build clauses  
+      buildClauses();
+
+      // Switch steps  
+      stepName.style.display = 'none';  
+      stepWaiver.style.display = 'block';  
+      stepWaiver.focus();  
+      announce('Waiver clauses loaded. ' + clauseTexts.length + ' clauses to review.');  
+    });
+
+    fullNameInput.addEventListener('input', function() {  
+      if (this.value.trim()) {  
+        nameError.textContent = '';  
+        this.setAttribute('aria-invalid', 'false');  
+      }  
+    });
+
+    // ============================================  
+    // BUILD CLAUSES  
+    // ============================================  
+    function buildClauses() {  
+      clausesContainer.innerHTML = '';  
+      clauseTexts.forEach((text, i) => {  
+        const div = document.createElement('div');  
+        div.className = 'clause';  
+        div.id = 'clause-' + i;
+
+        const cb = document.createElement('input');  
+        cb.type = 'checkbox';  
+        cb.id = 'clause-cb-' + i;  
+        cb.setAttribute('aria-label', 'Clause ' + (i + 1) + ' of ' + clauseTexts.length);
+
+        const span = document.createElement('span');  
+        span.className = 'clause-text';  
+        span.innerHTML = '<span class="clause-num">' + (i + 1) + '.</span> ' + text;
+
+        const label = document.createElement('label');  
+        label.setAttribute('for', 'clause-cb-' + i);  
+        label.className = 'sr-only';  
+        label.textContent = 'Agree to clause ' + (i + 1);
+
+        cb.addEventListener('change', function() {  
+          if (this.checked) {  
+            checkedClauses.add(i);  
+            div.classList.add('checked');  
+          } else {  
+            checkedClauses.delete(i);  
+            div.classList.remove('checked');  
+          }  
+          updateProgress();  
+        });
+
+        div.appendChild(cb);  
+        div.appendChild(label);  
+        div.appendChild(span);  
+        clausesContainer.appendChild(div);  
+      });  
+    }
+
+    // ============================================  
+    // UPDATE PROGRESS  
+    // ============================================  
+    function updateProgress() {  
+      const count = checkedClauses.size;  
+      const total = clauseTexts.length;  
+      const pct = (count / total) * 100;
+
+      confirmedCount.textContent = count;  
+      remainingText.textContent = (total - count) + ' clauses remaining';  
+      progressFill.style.width = pct + '%';  
+      progressTrack.setAttribute('aria-valuenow', count);
+
+      if (count === total) {  
+        finalAgree.disabled = false;  
+        announce('All clauses confirmed. Please agree to the final statement and sign.');  
+      } else {  
+        finalAgree.disabled = true;  
+        finalAgree.checked = false;  
+        sigInput.disabled = true;  
+        sigInput.value = '';  
+        submitBtn.disabled = true;  
+        submitBtn.setAttribute('aria-disabled', 'true');  
+      }  
+    }
+
+    // ============================================  
+    // FINAL AGREEMENT CHECKBOX  
+    // ============================================  
+    finalAgree.addEventListener('change', function() {  
+      if (this.checked && checkedClauses.size === clauseTexts.length) {  
+        sigInput.disabled = false;  
+        sigInput.focus();  
+        announce('Please type your full name to sign the waiver.');  
+      } else {  
+        sigInput.disabled = true;  
+        sigInput.value = '';  
+        submitBtn.disabled = true;  
+        submitBtn.setAttribute('aria-disabled', 'true');  
+      }  
+    });
+
+    // ============================================  
+    // SIGNATURE INPUT VALIDATION  
+    // ============================================  
+    sigInput.addEventListener('input', function() {  
+      const val = this.value.trim();  
+      if (val && val.length >= 2) {  
+        submitBtn.disabled = false;  
+        submitBtn.setAttribute('aria-disabled', 'false');  
+        sigError.textContent = '';  
+        this.setAttribute('aria-invalid', 'false');  
+      } else {  
+        submitBtn.disabled = true;  
+        submitBtn.setAttribute('aria-disabled', 'true');  
+      }  
+    });
+
+    // ============================================  
+    // SUBMIT WAIVER  
+    // ============================================  
+    submitBtn.addEventListener('click', function() {  
+      const sig = sigInput.value.trim();  
+      if (!sig || sig.length < 2) {  
+        sigError.textContent = 'Please type your full legal name to sign.';  
+        sigInput.setAttribute('aria-invalid', 'true');  
+        sigInput.focus();  
+        return;  
+      }
+
+      // Validate signature matches participant name (case-insensitive)  
+      if (sig.toLowerCase() !== participantName.toLowerCase()) {  
+        sigError.textContent = 'Signature must match the name you entered: "' + participantName + '"';  
+        sigInput.setAttribute('aria-invalid', 'true');  
+        sigInput.focus();  
+        return;  
+      }
+
+      sigError.textContent = '';  
+      sigInput.setAttribute('aria-invalid', 'false');
+
+      // Record submission  
+      const now = new Date();  
+      const timeStr = now.toLocaleString();  
+      const submission = { name: participantName, time: timeStr };
+
+      // Save to localStorage  
+      let subs = JSON.parse(localStorage.getItem('auric_submissions') || '[]');  
+      subs.push(submission);  
+      localStorage.setItem('auric_submissions', JSON.stringify(subs));
+
+      // Show success  
+      document.getElementById('success-name').textContent = participantName;  
+      document.getElementById('success-time').textContent = timeStr;
+
+      stepWaiver.style.display = 'none';  
+      stepSuccess.style.display = 'block';  
+      stepSuccess.focus();  
+      announce('Waiver successfully signed by ' + participantName + '.');
+
+      // Update dashboard  
+      renderSubmissions();  
+    });
+
+    // ============================================  
+    // RESET FORM  
+    // ============================================  
+    function resetForm() {  
+      participantName = '';  
+      checkedClauses.clear();  
+      fullNameInput.value = '';  
+      sigInput.value = '';  
+      sigInput.disabled = true;  
+      finalAgree.checked = false;  
+      finalAgree.disabled = true;  
+      submitBtn.disabled = true;  
+      submitBtn.setAttribute('aria-disabled', 'true');  
+      nameError.textContent = '';  
+      sigError.textContent = '';  
+      fullNameInput.setAttribute('aria-invalid', 'false');  
+      sigInput.setAttribute('aria-invalid', 'false');
+
+      stepSuccess.style.display = 'none';  
+      stepWaiver.style.display = 'none';  
+      stepName.style.display = 'block';  
+      fullNameInput.focus();  
+      announce('Form reset. Ready for a new participant.');  
+    }
+
+    // ============================================  
+    // DASHBOARD  
+    // ============================================  
+    function renderSubmissions() {  
+      const list = document.getElementById('submissions-list');  
+      const subs = JSON.parse(localStorage.getItem('auric_submissions') || '[]');
+
+      if (subs.length === 0) {  
+        list.innerHTML = '<div class="empty-state">No submissions yet.</div>';  
+        return;  
+      }
+
+      list.innerHTML = '';  
+      subs.forEach((s, i) => {  
+        const item = document.createElement('div');  
+        item.className = 'submission-item';  
+        item.innerHTML =  
+          '<span class="name">' + escapeHTML(s.name) + '</span>' +  
+          '<span class="time">' + escapeHTML(s.time) + '</span>';  
+        list.appendChild(item);  
+      });  
+    }
+
+    function clearAll() {  
+      if (confirm('Are you sure you want to clear all submissions? This cannot be undone.')) {  
+        localStorage.removeItem('auric_submissions');  
+        renderSubmissions();  
+        announce('All submissions cleared.');  
+      }  
+    }
+
+    function escapeHTML(str) {  
+      const div = document.createElement('div');  
+      div.textContent = str;  
+      return div.innerHTML;  
+    }
+
+    // Initialize dashboard on load  
+    renderSubmissions();  
+  </script>
+
+</body>  
+</html>  
