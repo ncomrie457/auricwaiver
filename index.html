@@ -323,6 +323,14 @@
     .email-sent { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }  
     .email-failed { background: #fef9e7; color: #7a6320; border: 1px solid #f0dca0; }
 
+    .success-actions {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
     .admin-panel {  
       display: none;  
       background: #fff;  
@@ -379,7 +387,9 @@
       .hero-frame span::before,  
       .hero-frame span::after { width: 24px; height: 24px; }  
       .admin-actions { width: 100%; }  
-      .admin-actions .btn { width: 100%; justify-content: center; }  
+      .admin-actions .btn { width: 100%; justify-content: center; }
+      .success-actions { flex-direction: column; }
+      .success-actions .btn { width: 100%; justify-content: center; }
     }
 
     @media (prefers-reduced-motion: reduce) {  
@@ -469,10 +479,11 @@
       <p class="detail"><strong>Signed at:</strong> <span id="success-time"></span></p>  
       <p class="detail"><strong>Clauses agreed:</strong> All 19 confirmed</p>  
       <div id="email-status"></div>  
-      <p style="color:#5c4a3a;font-size:0.95rem;margin-top:1.5rem;">Your instructor has been notified. See you on the mat. ✦</p>  
-      <div style="margin-top:1.5rem;">  
-        <button type="button" id="new-btn" class="btn btn-primary">New Participant →</button>  
-      </div>  
+      <p style="color:#5c4a3a;font-size:0.95rem;margin-top:1.5rem;">Your instructor has been notified. See you on the mat. ✦</p>
+      <div class="success-actions">
+        <button type="button" id="download-waiver-btn" class="btn btn-primary">📄 Download My Waiver (PDF)</button>
+        <button type="button" id="new-btn" class="btn btn-secondary">New Participant →</button>
+      </div>
     </div>
 
     <!-- ADMIN PANEL -->  
@@ -497,6 +508,7 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -548,28 +560,31 @@ var TOTAL = clauseTexts.length; // 19
 var participantName = '';  
 var checkedClauses = {};  
 var checkedCount = 0;
+var lastSubmission = null;
 
-var stepName    = document.getElementById('step-name');  
-var stepWaiver  = document.getElementById('step-waiver');  
-var stepSuccess = document.getElementById('step-success');  
-var continueBtn = document.getElementById('continue-btn');  
-var fullNameInput   = document.getElementById('full-name');  
-var nameError       = document.getElementById('name-error');  
-var clausesContainer= document.getElementById('clauses-container');  
-var confirmedCountEl= document.getElementById('confirmed-count');  
-var remainingTextEl = document.getElementById('remaining-text');  
-var progressFillEl  = document.getElementById('progress-fill');  
-var progressTrack   = document.querySelector('.progress-track');  
-var finalAgree  = document.getElementById('final-agree');  
-var sigInput    = document.getElementById('sig-input');  
-var sigError    = document.getElementById('sig-error');  
-var submitBtn   = document.getElementById('submit-btn');  
-var newBtn      = document.getElementById('new-btn');  
-var adminPanel  = document.getElementById('admin-panel');  
-var downloadBtn = document.getElementById('download-btn');  
-var closeAdminBtn   = document.getElementById('close-admin-btn');  
-var emailStatusEl   = document.getElementById('email-status');
+var stepName         = document.getElementById('step-name');  
+var stepWaiver       = document.getElementById('step-waiver');  
+var stepSuccess      = document.getElementById('step-success');  
+var continueBtn      = document.getElementById('continue-btn');  
+var fullNameInput    = document.getElementById('full-name');  
+var nameError        = document.getElementById('name-error');  
+var clausesContainer = document.getElementById('clauses-container');  
+var confirmedCountEl = document.getElementById('confirmed-count');  
+var remainingTextEl  = document.getElementById('remaining-text');  
+var progressFillEl   = document.getElementById('progress-fill');  
+var progressTrack    = document.querySelector('.progress-track');  
+var finalAgree       = document.getElementById('final-agree');  
+var sigInput         = document.getElementById('sig-input');  
+var sigError         = document.getElementById('sig-error');  
+var submitBtn        = document.getElementById('submit-btn');  
+var newBtn           = document.getElementById('new-btn');
+var downloadWaiverBtn = document.getElementById('download-waiver-btn');
+var adminPanel       = document.getElementById('admin-panel');  
+var downloadBtn      = document.getElementById('download-btn');  
+var closeAdminBtn    = document.getElementById('close-admin-btn');  
+var emailStatusEl    = document.getElementById('email-status');
 
+// ── Step 1 ────────────────────────────────────────────────────────────────────
 continueBtn.addEventListener('click', function() {  
   var name = fullNameInput.value.trim();  
   if (!name) {  
@@ -604,6 +619,7 @@ fullNameInput.addEventListener('input', function() {
   if (this.value.trim()) { nameError.textContent = ''; this.setAttribute('aria-invalid', 'false'); }  
 });
 
+// ── Build clauses ─────────────────────────────────────────────────────────────
 function buildClauses() {  
   clausesContainer.innerHTML = '';  
   checkedClauses = {};  
@@ -632,6 +648,7 @@ function buildClauses() {
   }  
 }
 
+// ── Progress ──────────────────────────────────────────────────────────────────
 function updateProgress() {  
   checkedCount = Object.keys(checkedClauses).length;  
   var pct = (checkedCount / TOTAL) * 100;  
@@ -674,6 +691,7 @@ sigInput.addEventListener('input', function() {
   }  
 });
 
+// ── Submit ────────────────────────────────────────────────────────────────────
 submitBtn.addEventListener('click', function() {  
   var sig = sigInput.value.trim();  
   if (!sig || sig.length < 2) {  
@@ -692,7 +710,8 @@ submitBtn.addEventListener('click', function() {
   sigInput.setAttribute('aria-invalid', 'false');  
   var now = new Date();  
   var timeStr = now.toLocaleString();  
-  var submission = { name: participantName, signature: sig, time: timeStr, timestamp: now.toISOString(), clausesAgreed: TOTAL };  
+  var submission = { name: participantName, signature: sig, time: timeStr, timestamp: now.toISOString(), clausesAgreed: TOTAL };
+  lastSubmission = submission;
   var subs = [];  
   try { subs = JSON.parse(localStorage.getItem('auric_submissions')) || []; } catch(e) { subs = []; }  
   subs.push(submission);  
@@ -702,11 +721,12 @@ submitBtn.addEventListener('click', function() {
   stepWaiver.classList.add('hidden');  
   stepSuccess.classList.remove('hidden');  
   stepSuccess.scrollIntoView({ behavior: 'smooth' });  
-  announce('Waiver successfully signed by ' + participantName);  
+  announce('Waiver successfully signed by ' + participantName + '. You can now download your PDF copy.');
   sendEmail(submission);  
   renderSubmissions();  
 });
 
+// ── Email ─────────────────────────────────────────────────────────────────────
 function sendEmail(submission) {  
   emailStatusEl.innerHTML = '<div class="email-status email-sent">📧 Sending confirmation...</div>';  
   if (typeof emailjs === 'undefined') {  
@@ -719,10 +739,184 @@ function sendEmail(submission) {
     .catch(function(error) { console.log('EmailJS error:', error); emailStatusEl.innerHTML = '<div class="email-status email-failed">⚠️ Could not send email notification. Your waiver is still recorded.</div>'; });  
 }
 
+// ── PDF Download ──────────────────────────────────────────────────────────────
+downloadWaiverBtn.addEventListener('click', function() {
+  if (!lastSubmission) return;
+  generateWaiverPDF(lastSubmission);
+});
+
+function generateWaiverPDF(submission) {
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF({ unit: 'pt', format: 'letter' });
+
+  var pageW    = doc.internal.pageSize.getWidth();
+  var pageH    = doc.internal.pageSize.getHeight();
+  var margin   = 54;
+  var contentW = pageW - margin * 2;
+  var y        = margin;
+
+  function checkPage(needed) {
+    if (y + needed > pageH - margin - 32) {
+      doc.addPage();
+      y = margin;
+    }
+  }
+
+  // Header bar
+  doc.setFillColor(90, 58, 26);
+  doc.rect(0, 0, pageW, 72, 'F');
+  doc.setFont('times', 'italic');
+  doc.setFontSize(26);
+  doc.setTextColor(255, 255, 255);
+  doc.text('Auric Movement', pageW / 2, 30, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(230, 210, 180);
+  doc.text('PILATES · WELLNESS · FLOW', pageW / 2, 46, { align: 'center' });
+  doc.setFontSize(8);
+  doc.setTextColor(200, 180, 150);
+  doc.text('MOVE · FEEL · GLOW', pageW / 2, 60, { align: 'center' });
+
+  y = 96;
+
+  // Title
+  doc.setFont('times', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(90, 58, 26);
+  doc.text('LIABILITY WAIVER & RELEASE', pageW / 2, y, { align: 'center' });
+  y += 10;
+  doc.setDrawColor(176, 120, 64);
+  doc.setLineWidth(1);
+  doc.line(margin, y, pageW - margin, y);
+  y += 18;
+
+  // Participant info box
+  doc.setFillColor(250, 245, 238);
+  doc.setDrawColor(176, 120, 64);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(margin, y, contentW, 72, 6, 6, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(90, 58, 26);
+  doc.text('PARTICIPANT', margin + 14, y + 16);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(44, 36, 32);
+  doc.text(submission.name, margin + 14, y + 30);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(90, 58, 26);
+  doc.text('DATE & TIME SIGNED', margin + 14, y + 48);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(44, 36, 32);
+  doc.text(submission.time, margin + 14, y + 60);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(90, 58, 26);
+  doc.text('CLAUSES AGREED', pageW / 2 + 10, y + 16);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(44, 36, 32);
+  doc.text('All ' + TOTAL + ' of ' + TOTAL + ' confirmed', pageW / 2 + 10, y + 30);
+  y += 88;
+
+  // Clauses heading
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(90, 58, 26);
+  doc.text('AGREED CLAUSES', margin, y);
+  y += 6;
+  doc.setDrawColor(176, 120, 64);
+  doc.setLineWidth(0.75);
+  doc.line(margin, y, pageW - margin, y);
+  y += 14;
+
+  // Each clause
+  for (var i = 0; i < clauseTexts.length; i++) {
+    var lines = doc.setFontSize(8.5).splitTextToSize(clauseTexts[i], contentW - 26);
+    var blockH = lines.length * 11 + 14;
+    checkPage(blockH);
+
+    // Number badge
+    doc.setFillColor(176, 120, 64);
+    doc.circle(margin + 8, y + 5, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(255, 255, 255);
+    doc.text(String(i + 1), margin + 8, y + 7.5, { align: 'center' });
+
+    // Clause text
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(61, 50, 42);
+    doc.text(lines, margin + 22, y + 5);
+
+    y += blockH;
+    doc.setDrawColor(232, 224, 213);
+    doc.setLineWidth(0.3);
+    doc.line(margin + 22, y - 4, pageW - margin, y - 4);
+  }
+
+  // Acknowledgement statement
+  checkPage(80);
+  y += 8;
+  doc.setFillColor(250, 245, 238);
+  doc.setDrawColor(176, 120, 64);
+  doc.setLineWidth(3);
+  doc.line(margin, y, margin, y + 64);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin + 5, y, contentW - 5, 64, 4, 4, 'F');
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(9);
+  doc.setTextColor(61, 50, 42);
+  var stmt = 'I, ' + submission.name + ', acknowledge that I have carefully read and fully understand this Liability Waiver & Release. I understand that I am giving up substantial legal rights, including the right to sue. I sign this agreement freely and voluntarily, without any inducement.';
+  var stmtLines = doc.splitTextToSize(stmt, contentW - 22);
+  doc.text(stmtLines, margin + 14, y + 14);
+  y += 76;
+
+  // Signature block
+  checkPage(70);
+  doc.setDrawColor(200, 186, 168);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y + 30, margin + 230, y + 30);
+  doc.line(margin + 250, y + 30, margin + 410, y + 30);
+  doc.setFont('times', 'italic');
+  doc.setFontSize(15);
+  doc.setTextColor(90, 58, 26);
+  doc.text('✦ ' + submission.signature, margin + 4, y + 26);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(122, 110, 99);
+  doc.text('Digital Signature', margin + 4, y + 40);
+  doc.text('Date', margin + 254, y + 40);
+  doc.setFontSize(9);
+  doc.setTextColor(61, 50, 42);
+  doc.text(submission.time, margin + 254, y + 26);
+
+  // Footer on every page
+  var totalPages = doc.internal.getNumberOfPages();
+  for (var p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFillColor(245, 240, 232);
+    doc.rect(0, pageH - 32, pageW, 32, 'F');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(122, 110, 99);
+    doc.text('Auric Movement · Liability Waiver · Electronically signed ' + submission.time, pageW / 2, pageH - 18, { align: 'center' });
+    doc.text('Page ' + p + ' of ' + totalPages, pageW / 2, pageH - 8, { align: 'center' });
+  }
+
+  var safeName = submission.name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+  doc.save('auric-waiver-' + safeName + '.pdf');
+}
+
+// ── New participant ───────────────────────────────────────────────────────────
 newBtn.addEventListener('click', function() {  
   participantName = '';  
   checkedClauses = {};  
-  checkedCount = 0;  
+  checkedCount = 0;
+  lastSubmission = null;
   fullNameInput.value = '';  
   sigInput.value = '';  
   sigInput.disabled = true;  
@@ -740,6 +934,7 @@ newBtn.addEventListener('click', function() {
   announce('Form reset. Ready for a new participant.');  
 });
 
+// ── Admin panel ───────────────────────────────────────────────────────────────
 document.addEventListener('keydown', function(e) {  
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) { e.preventDefault(); toggleAdmin(); }  
 });
@@ -767,6 +962,7 @@ function renderSubmissions() {
   }  
 }
 
+// ── CSV Download ──────────────────────────────────────────────────────────────
 downloadBtn.addEventListener('click', function() {  
   var subs = [];  
   try { subs = JSON.parse(localStorage.getItem('auric_submissions')) || []; } catch(e) { subs = []; }  
