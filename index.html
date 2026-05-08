@@ -572,7 +572,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var EMAILJS_PUBLIC_KEY  = 'xr1kT3l8rFhNodudq';
   var EMAILJS_SERVICE_ID  = 'service_9n4adla';
-  var EMAILJS_TEMPLATE_ID = 'template_6qkcf8j';
+  var TMPL_CONFIRM    = 'template_6i1srps'; // Template 1 — Participant Confirmation
+  var TMPL_WAITLIST   = 'template_y50ixp4'; // Template 2 — Participant Waitlist
+  var TMPL_TRANSFER   = 'template_ep23jwi'; // Template 4 — Transfer Confirmation
+  var TMPL_WL_OPEN    = 'template_upkcys7'; // Waitlist Spot Opened
+  var TMPL_ADMIN      = 'template_6qkcf8j'; // Waiver Signed — Admin notification
   var MAX_PER_SESSION     = 6;
   var STORAGE_KEY         = 'auric_june19';
   var TOTAL_CLAUSES       = 19;
@@ -765,26 +769,41 @@ document.addEventListener('DOMContentLoaded', function() {
     var el=document.getElementById('email-status');
     el.innerHTML='<div class="email-status email-sent">Sending confirmation...</div>';
     if(typeof emailjs==='undefined'){el.innerHTML='<div class="email-status email-failed">Email service unavailable. Spot is saved.</div>';return;}
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    // Send to participant
+    emailjs.send(EMAILJS_SERVICE_ID, TMPL_CONFIRM, {
       from_name:rec.name, to_email:rec.email, session_label:rec.sessionLabel,
       arrival_time:rec.arrival, class_time:rec.classStart, sign_time:rec.time,
       cancel_code:rec.code, clauses_agreed:TOTAL_CLAUSES+' of '+TOTAL_CLAUSES,
-      venue:'The Space Pilates Studio, 201 West 20th Street, 8th Floor, New York, NY 10011',
-      shoes_note:'Please leave your shoes by the elevator before entering.',
+      venue:'The Space Pilates Studio, 201 West 20th Street, 2nd Floor, New York, NY 10011',
       cancel_url:window.location.href.split('?')[0]+'?cancel='+rec.code
-    }).then(function(){ el.innerHTML='<div class="email-status email-sent">Confirmation sent to '+escapeHTML(rec.email)+'</div>'; })
-      .catch(function(){ el.innerHTML='<div class="email-status email-failed">Could not send email. Your spot is still confirmed.</div>'; });
+    }).then(function(){ el.innerHTML='<div class="email-status email-sent">✅ Confirmation sent to '+escapeHTML(rec.email)+'</div>'; })
+      .catch(function(){ el.innerHTML='<div class="email-status email-failed">⚠️ Could not send email. Your spot is still confirmed.</div>'; });
+    // Send admin notification
+    emailjs.send(EMAILJS_SERVICE_ID, TMPL_ADMIN, {
+      from_name:rec.name, to_email:rec.email, session_label:rec.sessionLabel,
+      arrival_time:rec.arrival, registration_type:'Confirmed',
+      sign_time:rec.time, clauses_agreed:TOTAL_CLAUSES+' of '+TOTAL_CLAUSES,
+      cancel_code:rec.code
+    });
   }
 
   function sendWaitlistEmail(rec) {
     var el=document.getElementById('wl-email-status');
     el.innerHTML='<div class="email-status email-sent">Sending waitlist confirmation...</div>';
     if(typeof emailjs==='undefined'){el.innerHTML='<div class="email-status email-failed">Email service unavailable.</div>';return;}
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    // Send to participant
+    emailjs.send(EMAILJS_SERVICE_ID, TMPL_WAITLIST, {
       from_name:rec.name, to_email:rec.email, session_label:rec.sessionLabel,
       arrival_time:rec.arrival, wl_position:rec.wlPosition, cancel_code:rec.code
-    }).then(function(){ el.innerHTML='<div class="email-status email-sent">Waitlist confirmation sent to '+escapeHTML(rec.email)+'</div>'; })
-      .catch(function(){ el.innerHTML='<div class="email-status email-failed">Could not send email. You are still on the waitlist.</div>'; });
+    }).then(function(){ el.innerHTML='<div class="email-status email-sent">✅ Waitlist confirmation sent to '+escapeHTML(rec.email)+'</div>'; })
+      .catch(function(){ el.innerHTML='<div class="email-status email-failed">⚠️ Could not send email. You are still on the waitlist.</div>'; });
+    // Send admin notification
+    emailjs.send(EMAILJS_SERVICE_ID, TMPL_ADMIN, {
+      from_name:rec.name, to_email:rec.email, session_label:rec.sessionLabel,
+      arrival_time:rec.arrival, registration_type:'Waitlist #'+rec.wlPosition,
+      sign_time:rec.time, clauses_agreed:TOTAL_CLAUSES+' of '+TOTAL_CLAUSES,
+      cancel_code:rec.code
+    });
   }
 
   function notifyWaitlist(sessionId) {
@@ -793,10 +812,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if(!wl.length){return;}
     if(typeof emailjs==='undefined'){return;}
     wl.forEach(function(person){
-      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        from_name:person.name, to_email:person.email, session_label:sess.label,
-        arrival_time:sess.arrival,
-        message:'A spot has opened for '+sess.label+' on June 19th! This message is going to everyone on the waitlist — first to respond gets the spot!'
+      emailjs.send(EMAILJS_SERVICE_ID, TMPL_WL_OPEN, {
+        from_name:person.name, to_email:person.email,
+        session_label:sess.label, arrival_time:sess.arrival,
+        register_url:window.location.href.split('?')[0],
+        message:'A spot has opened for '+sess.label+' on June 19th! This message is going to everyone on the waitlist — first to register gets it!'
       });
     });
   }
@@ -961,16 +981,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof emailjs !== 'undefined') {
       var el = document.getElementById('transfer-email-status');
       el.innerHTML = '<div class="email-status email-sent">Sending confirmation...</div>';
-      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      emailjs.send(EMAILJS_SERVICE_ID, TMPL_TRANSFER, {
         from_name: newName, to_email: newEmail,
         session_label: updatedRec.sessionLabel, arrival_time: updatedRec.arrival,
         class_time: updatedRec.classStart, sign_time: timeStr, cancel_code: newCode,
         clauses_agreed: TOTAL_CLAUSES + ' of ' + TOTAL_CLAUSES,
-        venue: 'The Space Pilates Studio, 201 West 20th Street, 8th Floor, New York, NY 10011',
-        shoes_note: 'Please leave your shoes by the elevator before entering.',
+        venue: 'The Space Pilates Studio, 201 West 20th Street, 2nd Floor, New York, NY 10011',
         cancel_url: window.location.href.split('?')[0] + '?cancel=' + newCode
-      }).then(function(){ el.innerHTML = '<div class="email-status email-sent">Confirmation sent to ' + escapeHTML(newEmail) + '</div>'; })
-        .catch(function(){ el.innerHTML = '<div class="email-status email-failed">Could not send email. Registration is still confirmed.</div>'; });
+      }).then(function(){ el.innerHTML = '<div class="email-status email-sent">✅ Confirmation sent to ' + escapeHTML(newEmail) + '</div>'; })
+        .catch(function(){ el.innerHTML = '<div class="email-status email-failed">⚠️ Could not send email. Registration is still confirmed.</div>'; });
+      // Admin notification
+      emailjs.send(EMAILJS_SERVICE_ID, TMPL_ADMIN, {
+        from_name: newName, to_email: newEmail,
+        session_label: updatedRec.sessionLabel, arrival_time: updatedRec.arrival,
+        registration_type: 'Transfer (was: ' + transferRecord.name + ')',
+        sign_time: timeStr, clauses_agreed: TOTAL_CLAUSES + ' of ' + TOTAL_CLAUSES,
+        cancel_code: newCode
+      });
     }
     buildSessionCards();
   });
