@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -425,6 +425,7 @@
         <div class="admin-actions">
           <button type="button" id="admin-csv-btn" class="btn btn-secondary">📥 CSV</button>
           <button type="button" id="admin-notify-btn" class="btn btn-secondary">📣 Notify Waitlists</button>
+          <button type="button" id="admin-clear-btn" class="btn btn-danger">🗑 Clear All Data</button>
           <button type="button" id="admin-close-btn" class="btn btn-secondary">✕ Close</button>
         </div>
       </div>
@@ -1102,6 +1103,15 @@ document.addEventListener('DOMContentLoaded', function() {
       body.appendChild(block);
     });
   }
+
+  document.getElementById('admin-clear-btn').addEventListener('click', function(){
+    if (confirm('Are you sure you want to delete ALL registrations? This cannot be undone.')) {
+      localStorage.removeItem(STORAGE_KEY);
+      renderAdmin();
+      buildSessionCards();
+      alert('All data cleared. Spots are now reset.');
+    }
+  });
 
   document.getElementById('admin-csv-btn').addEventListener('click',function(){
     var data=getData(); var csv='Name,Email,Session,Arrival,Type,Waitlist Position,Code,Time\n';
