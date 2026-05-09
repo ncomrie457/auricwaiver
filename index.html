@@ -425,6 +425,7 @@
         <div class="admin-actions">
           <button type="button" id="admin-csv-btn" class="btn btn-secondary">📥 CSV</button>
           <button type="button" id="admin-notify-btn" class="btn btn-secondary">📣 Notify Waitlists</button>
+          <button type="button" id="admin-reminder-btn" class="btn btn-primary">📨 Send Reminders</button>
           <button type="button" id="admin-clear-btn" class="btn btn-danger">🗑 Clear All Data</button>
           <button type="button" id="admin-close-btn" class="btn btn-secondary">✕ Close</button>
         </div>
@@ -521,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var TMPL_WAITLIST   = 'template_y50ixp4'; // Template 2 — Participant Waitlist
   var TMPL_TRANSFER   = 'template_ep23jwi'; // Template 4 — Transfer Confirmation
   var TMPL_WL_OPEN    = 'template_upkcys7'; // Waitlist Spot Opened
-  var TMPL_ADMIN      = 'template_6qkcf8j'; // Waiver Signed — Admin notification
+  var TMPL_REMINDER   = 'template_1fol3sf'; // Event Reminder
   var MAX_PER_SESSION     = 6;
   var STORAGE_KEY         = 'auric_june19';
   var TOTAL_CLAUSES       = 19;
@@ -1103,6 +1104,31 @@ document.addEventListener('DOMContentLoaded', function() {
       body.appendChild(block);
     });
   }
+
+  document.getElementById('admin-reminder-btn').addEventListener('click', function(){
+    var data = getData();
+    var confirmed = [];
+    SESSIONS.forEach(function(sess){
+      data[sess.id].filter(function(r){ return r.type === 'confirmed'; }).forEach(function(rec){
+        confirmed.push({ rec: rec, sess: sess });
+      });
+    });
+    if (!confirmed.length) { alert('No confirmed registrants to remind.'); return; }
+    if (!confirm('Send reminder emails to ' + confirmed.length + ' confirmed participant(s)?')) return;
+    if (typeof emailjs === 'undefined') { alert('EmailJS not loaded.'); return; }
+
+    var sent = 0;
+    confirmed.forEach(function(item){
+      emailjs.send(EMAILJS_SERVICE_ID, TMPL_REMINDER, {
+        from_name:    item.rec.name,
+        to_email:     item.rec.email,
+        session_label: item.sess.label,
+        arrival_time:  item.sess.arrival,
+        class_time:    item.sess.start
+      }).then(function(){ sent++; if (sent === confirmed.length) alert('✅ Reminder sent to ' + sent + ' participant(s)!'); })
+        .catch(function(){ alert('⚠️ Some reminders may not have sent. Check your EmailJS dashboard.'); });
+    });
+  });
 
   document.getElementById('admin-clear-btn').addEventListener('click', function(){
     if (confirm('Are you sure you want to delete ALL registrations? This cannot be undone.')) {
