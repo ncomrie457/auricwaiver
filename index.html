@@ -224,8 +224,8 @@
         </div>
         <div class="field">
           <label id="session-label">Choose Your Session <span class="required" aria-hidden="true">*</span></label>
-          <div class="session-grid" role="group" aria-labelledby="session-label" id="session-grid"></div>
-          <div id="reg-session-err" class="err-msg" role="alert"></div>
+          <div class="session-grid" role="radiogroup" aria-labelledby="session-label" id="session-grid"></div>
+          <div id="reg-session-err" class="err-msg" role="alert" aria-live="polite"></div>
         </div>
         <div class="privacy-bar">
           By registering you agree to our
@@ -653,8 +653,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var isFull    = remaining <= 0;
         var btn = document.createElement('button');
         btn.type = 'button';
+        btn.setAttribute('role', 'radio');
         btn.className = 'session-btn' + (isFull ? ' full' : '') + (selectedSession===sess.id && !isFull ? ' selected' : '');
-        btn.setAttribute('aria-pressed', selectedSession===sess.id ? 'true' : 'false');
+        btn.setAttribute('aria-checked', selectedSession===sess.id ? 'true' : 'false');
         var spotsText, spotsClass, badgeClass, badgeText;
         if (isFull) { spotsText='Full — Waitlist open'; spotsClass='spots-full'; badgeClass='badge-waitlist'; badgeText='Waitlist'; }
         else if (remaining<=2) { spotsText=remaining+' spot'+(remaining===1?'':'s')+' left'; spotsClass='spots-warn'; badgeClass='badge-open'; badgeText='Almost full'; }
@@ -1298,9 +1299,45 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Privacy & Terms modals
-  function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+  // ── Accessibility fixes ───────────────────────────────────────────────────
+
+  // 1. Modal focus trap with return focus
+  var lastFocusedElement = null;
+
+  function getFocusable(modal) {
+    return Array.from(modal.querySelectorAll(
+      'a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])'
+    ));
+  }
+
+  function openModal(id) {
+    lastFocusedElement = document.activeElement;
+    var modal = document.getElementById(id);
+    modal.classList.remove('hidden');
+    var focusable = getFocusable(modal);
+    if (focusable.length) focusable[0].focus();
+    modal.addEventListener('keydown', trapFocus);
+  }
+
+  function closeModal(id) {
+    var modal = document.getElementById(id);
+    modal.classList.add('hidden');
+    modal.removeEventListener('keydown', trapFocus);
+    if (lastFocusedElement) lastFocusedElement.focus();
+  }
+
+  function trapFocus(e) {
+    if (e.key !== 'Tab') return;
+    var modal = e.currentTarget;
+    var focusable = getFocusable(modal);
+    var first = focusable[0];
+    var last  = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last)  { e.preventDefault(); first.focus(); }
+    }
+  }
 
   ['open-privacy-btn','open-privacy-btn2'].forEach(function(id){
     var el = document.getElementById(id);
@@ -1319,8 +1356,30 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   document.addEventListener('keydown', function(e){
-    if (e.key==='Escape') { closeModal('privacy-modal'); closeModal('terms-modal'); }
+    if (e.key==='Escape') {
+      if (!document.getElementById('privacy-modal').classList.contains('hidden')) closeModal('privacy-modal');
+      if (!document.getElementById('terms-modal').classList.contains('hidden'))   closeModal('terms-modal');
+    }
   });
+
+  // 2. Session buttons — proper aria-checked as radio group
+  // (handled in buildSessionCards — btn.setAttribute('aria-checked') added below via patch)
+  // Session grid gets role="radiogroup"
+  var sessionGrid = document.getElementById('session-grid');
+  if (sessionGrid) sessionGrid.setAttribute('role', 'radiogroup');
+
+  // 3. Ensure all error message divs have role="alert"
+  ['reg-name-err','reg-email-err','reg-session-err','sig-err','cancel-err',
+   'transfer-code-err','transfer-name-err','transfer-email-err','transfer-sig-err'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el && !el.getAttribute('role')) el.setAttribute('role','alert');
+    if (el) el.setAttribute('aria-live','polite');
+  });
+
+  // 4. Final-agree and transfer-final-agree labels — ensure association
+  var fa = document.getElementById('final-agree');
+  var faLabel = document.querySelector('label[for="final-agree"]');
+  if (fa && faLabel) fa.setAttribute('aria-describedby', 'final-agree-label');
 
 }); // end DOMContentLoaded
 </script>
