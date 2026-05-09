@@ -582,48 +582,97 @@ document.addEventListener('DOMContentLoaded', function() {
   var lastSubmission  = null;
   var sheetData       = { s1:[], s2:[] }; // local cache loaded from Google Sheets
 
-  // ── Google Sheets API ─────────────────────────────────────────────────────
+  // ── Google Sheets API (JSONP to bypass CORS) ──────────────────────────────
   var SHEET_URL = 'https://script.google.com/macros/s/AKfycbxmZDlud0qijWmTIEVqkSiX6SoZlvTqs7PB-obAYBVPA-DLAPUjKXxoKn57gqBq0iUj/exec';
 
+  function jsonp(url, callback) {
+    var cbName = 'cb_' + Math.random().toString(36).substr(2, 8);
+    var script = document.createElement('script');
+    var timeout = setTimeout(function() {
+      cleanup();
+      callback({ result: 'error', message: 'Request timed out' });
+    }, 10000);
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data) {
+      cleanup();
+      callback(data);
+    };
+    script.src = url + (url.indexOf('?') > -1 ? '&' : '?') + 'callback=' + cbName;
+    script.onerror = function() {
+      cleanup();
+      callback({ result: 'error', message: 'Network error' });
+    };
+    document.head.appendChild(script);
+  }
+
   function sheetGet(callback) {
-    fetch(SHEET_URL + '?action=get')
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        sheetData = { s1:[], s2:[] };
-        if (data.result === 'success') {
-          data.data.forEach(function(row){
-            if (row.session === 's1') sheetData.s1.push(row);
-            if (row.session === 's2') sheetData.s2.push(row);
-          });
-        }
-        if (callback) callback(sheetData);
-      })
-      .catch(function(){ if (callback) callback(sheetData); });
+    jsonp(SHEET_URL + '?action=get', function(data) {
+      sheetData = { s1:[], s2:[] };
+      if (data.result === 'success') {
+        data.data.forEach(function(row) {
+          if (row.session === 's1') sheetData.s1.push(row);
+          if (row.session === 's2') sheetData.s2.push(row);
+        });
+      }
+      if (callback) callback(sheetData);
+    });
   }
 
   function sheetAdd(record, callback) {
-    fetch(SHEET_URL + '?action=add', {
-      method: 'POST',
-      body: JSON.stringify(record)
-    }).then(function(r){ return r.json(); })
-      .then(function(data){ if (callback) callback(data); })
-      .catch(function(e){ if (callback) callback({ result:'error', message: e.toString() }); });
+    // For add/update/delete we use a form submission approach via hidden iframe
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SHEET_URL + '?action=add';
+    form.target = '_sheet_iframe';
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'data';
+    input.value = JSON.stringify(record);
+    form.appendChild(input);
+    var iframe = document.createElement('iframe');
+    iframe.name = '_sheet_iframe';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    iframe.onload = function() {
+      document.body.removeChild(form);
+      document.body.removeChild(iframe);
+      if (callback) callback({ result: 'success' });
+    };
+    form.submit();
   }
 
   function sheetDelete(code, callback) {
-    fetch(SHEET_URL + '?action=delete&code=' + encodeURIComponent(code))
-      .then(function(r){ return r.json(); })
-      .then(function(data){ if (callback) callback(data); })
-      .catch(function(e){ if (callback) callback({ result:'error', message: e.toString() }); });
+    jsonp(SHEET_URL + '?action=delete&code=' + encodeURIComponent(code), function(data) {
+      if (callback) callback(data);
+    });
   }
 
   function sheetUpdate(record, callback) {
-    fetch(SHEET_URL + '?action=update', {
-      method: 'POST',
-      body: JSON.stringify(record)
-    }).then(function(r){ return r.json(); })
-      .then(function(data){ if (callback) callback(data); })
-      .catch(function(e){ if (callback) callback({ result:'error', message: e.toString() }); });
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SHEET_URL + '?action=update';
+    form.target = '_sheet_iframe2';
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'data';
+    input.value = JSON.stringify(record);
+    form.appendChild(input);
+    var iframe = document.createElement('iframe');
+    iframe.name = '_sheet_iframe2';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    iframe.onload = function() {
+      document.body.removeChild(form);
+      document.body.removeChild(iframe);
+      if (callback) callback({ result: 'success' });
+    };
+    form.submit();
   }
 
   function confirmedCount(sid) { return sheetData[sid].filter(function(r){ return r.type==='confirmed'; }).length; }
