@@ -153,15 +153,27 @@
     .privacy-bar { text-align:center; font-size:.8rem; color:var(--text-muted); margin-top:.5rem; }
     .privacy-bar button { background:none; border:none; color:var(--gold); cursor:pointer; font-size:.8rem; text-decoration:underline; font-family:'Jost',sans-serif; padding:0; }
 
-    @media(max-width:600px){
-      .card { padding:1.25rem 1rem; }
-      .session-grid { grid-template-columns:1fr; }
-      .admin-actions,.success-actions { flex-direction:column; }
-      .admin-actions .btn,.success-actions .btn { width:100%; justify-content:center; }
-      .hero { padding:2rem 1rem 1.5rem; }
-      .hero-title { font-size:clamp(32px,10vw,52px); }
-    }
-    @media(prefers-reduced-motion:reduce){ *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+    /* Tabs */
+    .tabs-nav { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:2rem; max-width:1100px; margin-left:auto; margin-right:auto; padding:0 1.25rem; }
+    .tab-btn { background:none; border:none; padding:.85rem 1.5rem; font-family:'Jost',sans-serif; font-size:.9rem; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .2s; letter-spacing:.02em; }
+    .tab-btn:hover { color:var(--brown); }
+    .tab-btn.active { color:var(--brown); border-bottom-color:var(--gold); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* Coming soon */
+    .coming-soon-layout { max-width:1100px; margin:0 auto; padding:2rem 1.25rem 4rem; display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start; }
+    @media(max-width:780px){ .coming-soon-layout { grid-template-columns:1fr; } }
+    .flyer-blur-wrap { position:relative; border-radius:16px; overflow:hidden; }
+    .flyer-blur-wrap img { width:100%; display:block; filter:blur(6px) brightness(.85); }
+    .flyer-blur-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(44,26,14,.25); }
+    .coming-soon-badge { background:var(--brown); color:#fff; font-family:'Playfair Display',serif; font-style:italic; font-size:1.4rem; padding:.6rem 1.5rem; border-radius:30px; margin-bottom:.5rem; }
+    .coming-soon-date { color:#fff; font-size:.85rem; font-weight:600; letter-spacing:.15em; text-transform:uppercase; text-shadow:0 1px 4px rgba(0,0,0,.4); }
+    .notify-card { background:var(--white); border:1px solid var(--border); border-radius:16px; padding:2rem 1.75rem; box-shadow:0 2px 12px rgba(92,74,58,.06); }
+    .notify-card h2 { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--brown); margin-bottom:.4rem; font-weight:700; }
+    .notify-status { margin-top:1rem; padding:.75rem 1rem; border-radius:10px; font-size:.85rem; }
+
+    @media(max-width:600px){ .tab-btn { padding:.75rem 1rem; font-size:.82rem; } }
   </style>
 </head>
 <body>
@@ -174,6 +186,13 @@
   <p style="font-size:clamp(.8rem,1.5vw,.9rem);color:var(--text-muted);margin-top:.5rem;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.7;font-family:'Jost',sans-serif;">An intentional movement experience where wellness meets community. At Auric Movement, we move with purpose, set intentions, reconnect with our bodies, and create space for meaningful connection.</p>
 </section>
 
+<nav class="tabs-nav" role="tablist" aria-label="Events">
+  <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-current" id="btn-current">Pilates x Niara — June 19th</button>
+  <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-coming" id="btn-coming">Coming Soon ✦</button>
+</nav>
+
+<!-- TAB 1: Current event -->
+<div id="tab-current" class="tab-panel active" role="tabpanel" aria-labelledby="btn-current">
 <main id="main-content" role="main">
   <div class="page-layout">
 
@@ -348,6 +367,30 @@
     </div>
   </div>
 </main>
+</div><!-- /tab-current -->
+
+<!-- TAB 2: Coming Soon -->
+<div id="tab-coming" class="tab-panel" role="tabpanel" aria-labelledby="btn-coming">
+  <div style="max-width:600px;margin:2rem auto;padding:0 1.25rem 4rem;">
+      <div class="notify-card">
+        <h2>Mat &amp; Chat ✦</h2>
+        <p class="subtitle">Our next event is coming August 1st. Enter your details below and you'll be the first to know when registration opens.</p>
+        <div class="field">
+          <label for="notify-name">Full Name <span class="required" aria-hidden="true">*</span></label>
+          <input type="text" id="notify-name" placeholder="Your full name" aria-required="true">
+          <div id="notify-name-err" class="err-msg" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="notify-email">Email Address <span class="required" aria-hidden="true">*</span></label>
+          <input type="email" id="notify-email" placeholder="your@email.com" aria-required="true">
+          <div id="notify-email-err" class="err-msg" role="alert"></div>
+        </div>
+        <button type="button" id="notify-btn" class="btn btn-primary btn-full">Notify Me When Registration Opens →</button>
+        <div id="notify-status" class="notify-status"></div>
+        <p style="font-size:.78rem;color:var(--text-muted);margin-top:.75rem;line-height:1.6;">By signing up you agree to our <button type="button" id="open-privacy-btn2" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:.78rem;text-decoration:underline;font-family:'Jost',sans-serif;padding:0;">Privacy Policy</button>. We'll only email you about this event.</p>
+      </div>
+  </div>
+</div><!-- /tab-coming -->
 
 <footer role="contentinfo">
   Auric Movement · Pilates x Niara · June 19th ·
@@ -998,7 +1041,55 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // ── Accessibility fixes ───────────────────────────────────────────────────
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected','true');
+      document.getElementById(btn.getAttribute('aria-controls')).classList.add('active');
+    });
+  });
+
+  // ── Notify Me ────────────────────────────────────────────────────────────
+  document.getElementById('notify-btn').addEventListener('click', function() {
+    var name  = document.getElementById('notify-name').value.trim();
+    var email = document.getElementById('notify-email').value.trim();
+    var ok    = true;
+    if (!name||name.length<2) { document.getElementById('notify-name-err').textContent='Please enter your name.'; ok=false; }
+    else { document.getElementById('notify-name-err').textContent=''; }
+    if (!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('notify-email-err').textContent='Please enter a valid email.'; ok=false; }
+    else { document.getElementById('notify-email-err').textContent=''; }
+    if (!ok) return;
+
+    var btn = document.getElementById('notify-btn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    if (typeof emailjs !== 'undefined') {
+      emailjs.send(EMAILJS_SERVICE_ID, TMPL_ADMIN, {
+        from_name: name,
+        to_email:  email,
+        session_label: 'Mat & Chat — August 1st Notify List',
+        arrival_time: '11:30 AM',
+        registration_type: 'Notify Me signup',
+        sign_time: new Date().toLocaleString(),
+        clauses_agreed: 'N/A',
+        cancel_code: 'N/A'
+      }).then(function(){
+        document.getElementById('notify-status').innerHTML = '<div class="email-status email-sent">✅ You\'re on the list! We\'ll email you when registration opens.</div>';
+        document.getElementById('notify-name').value = '';
+        document.getElementById('notify-email').value = '';
+        btn.disabled = false; btn.textContent = 'Notify Me When Registration Opens →';
+      }).catch(function(){
+        document.getElementById('notify-status').innerHTML = '<div class="email-status email-failed">⚠️ Something went wrong. Please try again.</div>';
+        btn.disabled = false; btn.textContent = 'Notify Me When Registration Opens →';
+      });
+    } else {
+      document.getElementById('notify-status').innerHTML = '<div class="email-status email-failed">⚠️ Email service unavailable. Please try again later.</div>';
+      btn.disabled = false; btn.textContent = 'Notify Me When Registration Opens →';
+    }
+  });
 
   // 1. Modal focus trap with return focus
   var lastFocusedElement = null;
