@@ -311,7 +311,7 @@
               <h2>Liability Waiver &amp; Release</h2>
               <span style="font-size:.85rem;color:var(--text-muted);">Signing as <strong id="waiver-name-display"></strong></span>
             </div>
-            <p class="subtitle">Read each clause carefully and check the box to confirm. All 19 clauses must be acknowledged before signing.</p>
+            <p class="subtitle">Read each clause carefully and check the box to confirm. All 19 clauses must be acknowledged before signing. You may select all at once or check them individually.</p>
             <div class="progress-section">
               <div class="progress-label">
                 <span><span id="confirmed-count">0</span>/19 confirmed</span>
@@ -320,6 +320,9 @@
               <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="19" aria-label="Clause confirmation progress" id="progress-track">
                 <div class="progress-fill" id="progress-fill"></div>
               </div>
+            </div>
+            <div style="margin-bottom:.75rem;">
+              <button type="button" id="select-all-btn" class="btn btn-secondary" style="font-size:.82rem;padding:.5rem 1rem;width:100%;justify-content:center;">✓ Select All Clauses</button>
             </div>
             <div id="clauses-container" role="group" aria-label="Waiver clauses"></div>
             <div class="sig-section">
@@ -718,6 +721,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Select All clauses
+  document.getElementById('select-all-btn').addEventListener('click', function() {
+    var checkboxes = document.querySelectorAll('#clauses-container input[type="checkbox"]');
+    checkboxes.forEach(function(cb, i) {
+      if (!cb.checked) {
+        cb.checked = true;
+        cb.dispatchEvent(new Event('change'));
+      }
+    });
+    this.textContent = '✓ All Clauses Selected';
+    this.disabled = true;
+    announce('All 19 clauses selected.');
+  });
+
   // Step 1 → Step 2
   document.getElementById('to-waiver-btn').addEventListener('click', function() {
     var name  = document.getElementById('reg-name').value.trim();
@@ -751,6 +768,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function buildClauses() {
     var container = document.getElementById('clauses-container');
     container.innerHTML = ''; checkedClauses={}; checkedCount=0; updateProgress();
+    var selectAllBtn = document.getElementById('select-all-btn');
+    if (selectAllBtn) { selectAllBtn.textContent = '✓ Select All Clauses'; selectAllBtn.disabled = false; }
     clauseTexts.forEach(function(text, i) {
       var div=document.createElement('div'); div.className='clause';
       var cb=document.createElement('input'); cb.type='checkbox'; cb.id='cb-'+i;
