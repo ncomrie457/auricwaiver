@@ -548,7 +548,10 @@
             <div style="background:#faf5ee;border:1px solid var(--border);border-radius:12px;padding:1.25rem;text-align:center;">
               <p style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--brown);margin-bottom:.5rem;">Complete Your Booking</p>
               <p style="font-size:.82rem;color:#3d322a;line-height:1.6;margin-bottom:.75rem;">Check all 19 clauses, sign your name, then pay $30 to confirm your spot.</p>
-              <a href="https://buy.stripe.com/eVq6oG20W3epagscIO9sk02" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-full" style="text-decoration:none;font-size:.9rem;justify-content:center;">💳 Pay $30 →</a>
+              <stripe-buy-button
+                buy-button-id="buy_btn_1TW4cqCyx5PIptEioWrQzOT8"
+                publishable-key="pk_live_51TSmNuCyx5PIptEi8SCgMFB3I7ECVFeAzDOwjj1ZLrVZX1scB6cH8wAjNor3SFilMwMuqo0aFsbsckjYLU33iSAp00tmUxBVlK"
+              ></stripe-buy-button>
               <p style="font-size:.72rem;color:var(--text-muted);margin-top:.6rem;line-height:1.5;">Only click once. Check your inbox for a Stripe receipt if you've already paid.</p>
             </div>
           </div>
@@ -568,7 +571,10 @@
         <div style="margin-top:1.25rem;padding:1rem 1.25rem;background:#faf5ee;border:1px solid var(--border);border-radius:10px;text-align:left;">
           <p style="font-size:.9rem;color:var(--brown);font-weight:700;margin-bottom:.5rem;">What happens next?</p>
           <p style="font-size:.85rem;color:#3d322a;line-height:1.75;">Our team will verify your payment and send you a confirmation email once your spot is secured. If you have not yet completed payment, please do so below.</p>
-          <a href="https://buy.stripe.com/eVq6oG20W3epagscIO9sk02" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="text-decoration:none;margin-top:.75rem;font-size:.85rem;">💳 Complete Payment →</a>
+          <stripe-buy-button
+            buy-button-id="buy_btn_1TW4cqCyx5PIptEioWrQzOT8"
+            publishable-key="pk_live_51TSmNuCyx5PIptEi8SCgMFB3I7ECVFeAzDOwjj1ZLrVZX1scB6cH8wAjNor3SFilMwMuqo0aFsbsckjYLU33iSAp00tmUxBVlK"
+          ></stripe-buy-button>
           <p style="font-size:.75rem;color:var(--text-muted);margin-top:.5rem;">Already paid? You're all set — watch for your confirmation email.</p>
         </div>
         <div style="margin-top:1rem;padding:.75rem 1rem;background:#fef9e7;border:1px solid #f0dca0;border-radius:10px;font-size:.82rem;color:#7a6320;line-height:1.6;">
@@ -704,6 +710,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script async src="https://js.stripe.com/v3/buy-button.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
