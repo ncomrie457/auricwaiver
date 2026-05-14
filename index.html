@@ -155,7 +155,14 @@
     .admin-header h2 { font-size:1.1rem; color:var(--brown); font-family:'Playfair Display',serif; }
     .admin-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
     .admin-session-block { margin-bottom:1.5rem; }
-    .admin-session-block h3 { font-size:.85rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:.6rem; border-bottom:1px solid var(--border); padding-bottom:.4rem; }
+    .admin-session-block h3 { font-size:.85rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:.6rem; border-bottom:1px solid var(--border); padding-bottom:.4rem; cursor:pointer; user-select:none; display:flex; align-items:center; gap:.5rem; }
+    .admin-session-block h3::before { content:'▾'; font-size:.7rem; transition:transform .2s; display:inline-block; flex-shrink:0; }
+    .admin-session-block.collapsed h3::before { transform:rotate(-90deg); }
+    .admin-session-block.collapsed > *:not(h3) { display:none; }
+    #admin-notify-list-section h3 { cursor:pointer; user-select:none; display:flex; align-items:center; gap:.5rem; }
+    #admin-notify-list-section h3::before { content:'▾'; font-size:.7rem; transition:transform .2s; display:inline-block; flex-shrink:0; }
+    #admin-notify-list-section.collapsed h3::before { transform:rotate(-90deg); }
+    #admin-notify-list-section.collapsed > *:not(h3) { display:none; }
     .admin-sub-item { display:flex; justify-content:space-between; align-items:center; padding:.6rem .85rem; background:var(--cream-light); border:1px solid var(--border); border-radius:8px; margin-bottom:.4rem; flex-wrap:wrap; gap:.4rem; font-size:.85rem; }
     .admin-sub-item .aname { font-weight:600; color:#3d322a; }
     .admin-sub-item .aemail { color:var(--text-muted); font-size:.8rem; }
@@ -530,7 +537,7 @@
 
       <p class="section-label" style="font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);padding-bottom:.5rem;margin:1.5rem 0 1rem;">Logistics</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-        <div class="field"><label for="corp-location">Preferred Location <span class="required" aria-hidden="true">*</span></label><select id="corp-location"><option value="">Select one</option><option>Our office / corporate space</option><option>A studio (you arrange)</option><option>A studio (we arrange)</option><option>Outdoor space</option><option>Open to suggestions</option></select><div id="corp-location-err" class="err-msg" role="alert"></div></div>
+        <div class="field"><label for="corp-location">Preferred Location <span class="required" aria-hidden="true">*</span></label><select id="corp-location"><option value="">Select one</option><option>A studio (you arrange)</option><option>A studio (we arrange)</option><option>Outdoor space</option><option>Open to suggestions</option></select><div id="corp-location-err" class="err-msg" role="alert"></div></div>
         <div class="field"><label for="corp-space-status">Do you already have a space?</label><select id="corp-space-status"><option value="">Select one</option><option>Yes — we have a space, just need an instructor</option><option>No — open to suggestions</option><option>No — need help finding a space</option></select></div>
         <div class="field"><label for="corp-preferred-day">Preferred Day</label><select id="corp-preferred-day"><option value="">Select one</option><option>Weekday morning</option><option>Weekday afternoon</option><option>Weekday evening</option><option>Weekend morning</option><option>Weekend afternoon</option><option>Flexible</option></select></div>
         <div class="field"><label for="corp-timeline">When do you need this by?</label><input type="text" id="corp-timeline" placeholder="e.g. Within 2 weeks, End of Q2"></div>
@@ -806,7 +813,7 @@
     </div>
     <div id="admin-body"></div>
     <div id="admin-notify-list-section" style="margin-top:1.5rem;">
-      <h3 style="font-size:.85rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem;border-bottom:1px solid var(--border);padding-bottom:.4rem;">Mat &amp; Chat — Notify List</h3>
+      <h3 style="font-size:.85rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem;border-bottom:1px solid var(--border);padding-bottom:.4rem;">Coming Soon — Notify List</h3>
       <div id="admin-notify-list-body"></div>
     </div>
 
@@ -1067,6 +1074,38 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(function(){
       localStorage.setItem(MC_STORAGE_KEY, JSON.stringify(d));
+      if (callback) callback();
+    });
+  }
+
+  // ── Corporate JSONBin ─────────────────────────────────────────────────────
+  var CORP_JSONBIN_URL  = 'https://api.jsonbin.io/v3/b/6a05e8d6250b1311c34d6dea';
+  var CORP_STORAGE_KEY  = 'auric_corporate';
+
+  function getCorpData(callback) {
+    fetch(CORP_JSONBIN_URL + '/latest', {
+      headers: { 'X-Access-Key': JSONBIN_KEY }
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){ callback(data.record || { inquiries:[], bookings:[] }); })
+    .catch(function(){
+      try { callback(JSON.parse(localStorage.getItem(CORP_STORAGE_KEY)) || { inquiries:[], bookings:[] }); }
+      catch(e){ callback({ inquiries:[], bookings:[] }); }
+    });
+  }
+
+  function saveCorpData(d, callback) {
+    fetch(CORP_JSONBIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
+      body: JSON.stringify(d)
+    })
+    .then(function(){
+      localStorage.setItem(CORP_STORAGE_KEY, JSON.stringify(d));
+      if (callback) callback();
+    })
+    .catch(function(){
+      localStorage.setItem(CORP_STORAGE_KEY, JSON.stringify(d));
       if (callback) callback();
     });
   }
@@ -1477,6 +1516,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var v=adminPanel.classList.toggle('visible');
     if(v){renderAdmin();adminPanel.scrollIntoView({behavior:'smooth'});}
   }
+
+  // Click any admin section header to collapse/expand
+  adminPanel.addEventListener('click', function(e){
+    var h3 = e.target.closest('h3');
+    if (!h3) return;
+    var block = h3.closest('.admin-session-block') || h3.closest('#admin-notify-list-section');
+    if (block) block.classList.toggle('collapsed');
+  });
   document.getElementById('admin-blast-btn').addEventListener('click', function(){
     getNotifyList(function(data){
       var list = data.notify || [];
@@ -1610,7 +1657,107 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       document.getElementById('admin-body').appendChild(mcBlock);
     });
+
+    // Corporate sections (inquiries + signed bookings)
+    getCorpData(function(corpData){
+      var inquiries = corpData.inquiries || [];
+      var bookings  = corpData.bookings  || [];
+
+      // Inquiries block
+      var inqBlock = document.createElement('div'); inqBlock.className = 'admin-session-block';
+      inqBlock.innerHTML = '<h3 style="color:var(--gold);">Corporate Inquiries · '+inquiries.length+'</h3>';
+      if (!inquiries.length) { inqBlock.innerHTML += '<div class="empty-state">No inquiries yet.</div>'; }
+      else {
+        inquiries.slice().reverse().forEach(function(rec){
+          var item = document.createElement('div'); item.className = 'admin-sub-item';
+          var details = '<details style="margin-top:.4rem;"><summary style="cursor:pointer;font-size:.78rem;color:var(--gold);">View details</summary>' +
+            '<div style="font-size:.78rem;color:#3d322a;margin-top:.4rem;line-height:1.6;">' +
+            '<strong>Phone:</strong> ' + escapeHTML(rec.contact_phone || 'Not provided') + '<br>' +
+            '<strong>Industry:</strong> ' + escapeHTML(rec.industry || 'Not provided') + '<br>' +
+            '<strong>Class type:</strong> ' + escapeHTML(rec.class_type || '—') + '<br>' +
+            '<strong>Level:</strong> ' + escapeHTML(rec.class_level || '—') + '<br>' +
+            '<strong>Duration:</strong> ' + escapeHTML(rec.duration || '—') + '<br>' +
+            '<strong>Frequency:</strong> ' + escapeHTML(rec.frequency || '—') + '<br>' +
+            '<strong>Headcount:</strong> ' + escapeHTML(rec.headcount || '—') + '<br>' +
+            '<strong>Experience:</strong> ' + escapeHTML(rec.experience || '—') + '<br>' +
+            '<strong>Location:</strong> ' + escapeHTML(rec.location || '—') + '<br>' +
+            '<strong>Space status:</strong> ' + escapeHTML(rec.space_status || '—') + '<br>' +
+            '<strong>Preferred day:</strong> ' + escapeHTML(rec.preferred_day || '—') + '<br>' +
+            '<strong>Timeline:</strong> ' + escapeHTML(rec.timeline || '—') + '<br>' +
+            '<strong>Theme:</strong> ' + escapeHTML(rec.theme || '—') + '<br>' +
+            '<strong>Budget:</strong> ' + escapeHTML(rec.budget || '—') + '<br>' +
+            '<strong>Referral:</strong> ' + escapeHTML(rec.referral_source || '—') + '<br>' +
+            '<strong>Injuries:</strong> ' + escapeHTML(rec.injuries || 'None') + '<br>' +
+            '<strong>Notes:</strong> ' + escapeHTML(rec.additional_notes || 'None') +
+            '</div></details>';
+          var removeBtn = '<button onclick="corpRemoveInquiry(\''+rec.code+'\')" style="background:#fdecea;border:1px solid #f5c6c2;color:var(--red);border-radius:6px;padding:.2rem .5rem;font-size:.72rem;cursor:pointer;font-family:\'Jost\',sans-serif;">🗑 Remove</button>';
+          item.innerHTML =
+            '<div style="flex:1;min-width:0;">' +
+              '<span class="aname">' + escapeHTML(rec.company_name) + '</span>' +
+              ' <span style="font-size:.78rem;color:var(--text-muted);">— ' + escapeHTML(rec.contact_name) + '</span>' +
+              '<br><span class="aemail">' + escapeHTML(rec.contact_email) + '</span>' +
+              details +
+            '</div>' +
+            '<div style="text-align:right">' +
+              '<span style="font-size:.75rem;color:var(--text-muted);">' + escapeHTML(rec.time) + '</span>' +
+              '<br><div style="margin-top:.3rem;">' + removeBtn + '</div>' +
+            '</div>';
+          inqBlock.appendChild(item);
+        });
+      }
+      document.getElementById('admin-body').appendChild(inqBlock);
+
+      // Bookings block
+      var bookBlock = document.createElement('div'); bookBlock.className = 'admin-session-block';
+      bookBlock.innerHTML = '<h3 style="color:var(--gold);">Corporate Bookings (Signed Waivers) · '+bookings.length+'</h3>';
+      if (!bookings.length) { bookBlock.innerHTML += '<div class="empty-state">No signed bookings yet.</div>'; }
+      else {
+        bookings.slice().reverse().forEach(function(rec){
+          var item = document.createElement('div'); item.className = 'admin-sub-item';
+          var details = '<details style="margin-top:.4rem;"><summary style="cursor:pointer;font-size:.78rem;color:var(--gold);">View details</summary>' +
+            '<div style="font-size:.78rem;color:#3d322a;margin-top:.4rem;line-height:1.6;">' +
+            '<strong>Date:</strong> ' + escapeHTML(rec.session_date || '—') + '<br>' +
+            '<strong>Location:</strong> ' + escapeHTML(rec.location || '—') + '<br>' +
+            '<strong>Headcount:</strong> ' + escapeHTML(rec.headcount || '—') + '<br>' +
+            '<strong>Injuries:</strong> ' + escapeHTML(rec.injuries || 'None') + '<br>' +
+            '<strong>Signed by:</strong> ' + escapeHTML(rec.signature || '—') + '<br>' +
+            '<strong>Clauses:</strong> ' + (rec.clauses_agreed || 19) + ' of 19' +
+            '</div></details>';
+          var removeBtn = '<button onclick="corpRemoveBooking(\''+rec.code+'\')" style="background:#fdecea;border:1px solid #f5c6c2;color:var(--red);border-radius:6px;padding:.2rem .5rem;font-size:.72rem;cursor:pointer;font-family:\'Jost\',sans-serif;">🗑 Remove</button>';
+          item.innerHTML =
+            '<div style="flex:1;min-width:0;">' +
+              '<span class="aname">' + escapeHTML(rec.company_name) + '</span>' +
+              ' <span style="font-size:.78rem;color:var(--text-muted);">— ' + escapeHTML(rec.contact_name) + '</span>' +
+              '<br><span class="aemail">' + escapeHTML(rec.contact_email) + '</span>' +
+              details +
+            '</div>' +
+            '<div style="text-align:right">' +
+              '<span class="atype type-confirmed">signed</span>' +
+              '<br><span style="font-size:.75rem;color:var(--text-muted);">' + escapeHTML(rec.sign_time) + '</span>' +
+              '<br><div style="margin-top:.3rem;">' + removeBtn + '</div>' +
+            '</div>';
+          bookBlock.appendChild(item);
+        });
+      }
+      document.getElementById('admin-body').appendChild(bookBlock);
+    });
   }
+
+  window.corpRemoveInquiry = function(code) {
+    if (!confirm('Remove this inquiry? This cannot be undone.')) return;
+    getCorpData(function(data){
+      data.inquiries = (data.inquiries || []).filter(function(r){ return r.code !== code; });
+      saveCorpData(data, function(){ renderAdmin(); });
+    });
+  };
+
+  window.corpRemoveBooking = function(code) {
+    if (!confirm('Remove this signed corporate booking? This cannot be undone.')) return;
+    getCorpData(function(data){
+      data.bookings = (data.bookings || []).filter(function(r){ return r.code !== code; });
+      saveCorpData(data, function(){ renderAdmin(); });
+    });
+  };
 
   window.adminPaymentPending = function(code) {
     getData(function(data){
@@ -2033,6 +2180,19 @@ document.addEventListener('DOMContentLoaded', function() {
       additional_notes:document.getElementById('corp-notes').value.trim() || 'None'
     };
 
+    // Save to JSONBin
+    var now = new Date();
+    var inquiryRecord = Object.assign({}, params, {
+      time: now.toLocaleString(),
+      timestamp: now.toISOString(),
+      code: 'INQ-' + Math.random().toString(36).substr(2,6).toUpperCase()
+    });
+    getCorpData(function(data){
+      if (!data.inquiries) data.inquiries = [];
+      data.inquiries.push(inquiryRecord);
+      saveCorpData(data);
+    });
+
     if (typeof emailjs !== 'undefined') {
       emailjs.send(EMAILJS_SERVICE_ID, TMPL_CORP_INQUIRY, params)
         .then(function(){
@@ -2180,6 +2340,27 @@ document.addEventListener('DOMContentLoaded', function() {
     var submitBtn = document.getElementById('corp-submit-btn');
     submitBtn.disabled=true; submitBtn.textContent='Submitting...';
     var now = new Date(); var timeStr = now.toLocaleString();
+
+    // Save booking + signed waiver to JSONBin
+    var bookingRecord = {
+      company_name:  company,
+      contact_name:  name,
+      contact_email: email,
+      headcount:     headcount,
+      session_date:  document.getElementById('corp-book-date').value.trim(),
+      location:      document.getElementById('corp-book-location').value.trim() || 'Not provided',
+      injuries:      document.getElementById('corp-book-injuries').value.trim() || 'None provided',
+      signature:     sig,
+      sign_time:     timeStr,
+      timestamp:     now.toISOString(),
+      clauses_agreed: 19,
+      code:          'CORP-' + Math.random().toString(36).substr(2,6).toUpperCase()
+    };
+    getCorpData(function(data){
+      if (!data.bookings) data.bookings = [];
+      data.bookings.push(bookingRecord);
+      saveCorpData(data);
+    });
 
     if (typeof emailjs !== 'undefined') {
       emailjs.send(EMAILJS_SERVICE_ID, TMPL_CORP_SIGNED, {
