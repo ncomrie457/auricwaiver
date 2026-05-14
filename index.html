@@ -192,9 +192,14 @@
     .page-layout.waiver-active { grid-template-columns:1fr; }
     .page-layout.waiver-active .flyer-col { display:none; }
 
-    @media(max-width:600px){ 
+    @media(max-width:600px){
       .tab-btn { padding:.75rem 1rem; font-size:.82rem; }
       #step-waiver .waiver-two-col { grid-template-columns:1fr !important; }
+      #tab-corporate div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns:1fr !important; }
+      #tab-corporate .card { padding:1.25rem 1rem; }
+      #tab-corporate input, #tab-corporate select, #tab-corporate textarea { width:100%; min-width:0; max-width:100%; box-sizing:border-box; }
+      #tab-corporate { padding-left:0; padding-right:0; }
+      #tab-corporate > div { padding-left:1rem; padding-right:1rem; }
     }
   </style>
 </head>
