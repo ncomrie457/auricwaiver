@@ -941,6 +941,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script async src="https://js.stripe.com/v3/buy-button.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -1014,105 +1015,263 @@ document.addEventListener('DOMContentLoaded', function() {
   var checkedCount    = 0;
   var lastSubmission  = null;
 
-  // ── JSONBin for cross-device spot tracking ───────────────────────────────
-  var JSONBIN_BIN_ID  = '69fea801adc21f119a742cec';
-  var JSONBIN_KEY     = '$2a$10$1ifY2qQZ/Yp7VV26Db9sS.DwIuJB3bgI6sza239oPdQZluvvDzSp6';
-  var JSONBIN_URL     = 'https://api.jsonbin.io/v3/b/' + JSONBIN_BIN_ID;
+  // ── Supabase client ───────────────────────────────────────────────────────
+  var supabase = window.supabase.createClient(
+    'https://qvmiwyxerotkqpbuhpun.supabase.co',
+    'sb_publishable_PHihtZqr-zBTcppyHSwSjg_klBABTpJ'
+  );
+
+  // Pilates: pair functions that match old JSONBin API
+  // saveData() diffs vs last-loaded snapshot — atomic per-row inserts/deletes via Supabase
+  var _lastPilates = { s1: [], s2: [] };
+
+  function _pRowToRec(row) {
+    return {
+      name: row.name, email: row.email, signature: row.signature || '',
+      session: row.session_id, sessionLabel: row.session_label,
+      arrival: row.arrival, classStart: row.class_start,
+      time: row.time_str, timestamp: row.timestamp_iso,
+      code: row.code, type: row.type,
+      wlPosition: row.wl_position, clausesAgreed: row.clauses_agreed
+    };
+  }
+  function _pRecToRow(rec, sid) {
+    return {
+      session_id: sid,
+      name: rec.name, email: rec.email, signature: rec.signature || null,
+      session_label: rec.sessionLabel, arrival: rec.arrival, class_start: rec.classStart,
+      time_str: rec.time, timestamp_iso: rec.timestamp,
+      code: rec.code, type: rec.type,
+      wl_position: rec.wlPosition || null,
+      clauses_agreed: rec.clausesAgreed || 0
+    };
+  }
 
   function getData(callback) {
-    fetch(JSONBIN_URL + '/latest', {
-      headers: { 'X-Access-Key': JSONBIN_KEY }
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data){ callback(data.record || { s1:[], s2:[] }); })
-    .catch(function(){
-      // fallback to localStorage if JSONBin fails
-      try { callback(JSON.parse(localStorage.getItem(STORAGE_KEY)) || { s1:[], s2:[] }); }
-      catch(e){ callback({ s1:[], s2:[] }); }
-    });
+    supabase.from('pilates_registrations').select('*').order('created_at')
+      .then(function(res){
+        var grouped = { s1: [], s2: [] };
+        (res.data || []).forEach(function(r){
+          if (grouped[r.session_id]) grouped[r.session_id].push(_pRowToRec(r));
+        });
+        _lastPilates = JSON.parse(JSON.stringify(grouped));
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(grouped)); } catch(e){}
+        callback(grouped);
+      }, function(){
+        try { callback(JSON.parse(localStorage.getItem(STORAGE_KEY)) || { s1:[], s2:[] }); }
+        catch(e){ callback({ s1:[], s2:[] }); }
+      });
   }
 
   function saveData(d, callback) {
-    fetch(JSONBIN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-      body: JSON.stringify(d)
-    })
-    .then(function(){ 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); // keep local copy too
-      if (callback) callback();
-    })
-    .catch(function(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-      if (callback) callback();
+    var inserts = [], deleteCodes = [];
+    ['s1','s2'].forEach(function(sid){
+      var oldCodes = {};
+      (_lastPilates[sid] || []).forEach(function(r){ if (r.code) oldCodes[r.code] = true; });
+      var newCodes = {};
+      (d[sid] || []).forEach(function(r){
+        if (!r.code) return;
+        newCodes[r.code] = true;
+        if (!oldCodes[r.code]) inserts.push(_pRecToRow(r, sid));
+      });
+      (_lastPilates[sid] || []).forEach(function(r){
+        if (r.code && !newCodes[r.code]) deleteCodes.push(r.code);
+      });
     });
+
+    var ops = [];
+    if (inserts.length)     ops.push(supabase.from('pilates_registrations').insert(inserts));
+    if (deleteCodes.length) ops.push(supabase.from('pilates_registrations').delete().in('code', deleteCodes));
+
+    var done = function(){
+      _lastPilates = JSON.parse(JSON.stringify(d));
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e){}
+      if (callback) callback();
+    };
+    if (!ops.length) { done(); return; }
+    Promise.all(ops).then(done, done);
   }
 
   function confirmedCount(sid, data) { 
     return (data[sid] || []).filter(function(r){ return r.type==='confirmed'; }).length; 
   }
 
-  // ── Mat & Chat JSONBin ────────────────────────────────────────────────────
-  var MC_JSONBIN_URL = 'https://api.jsonbin.io/v3/b/6a00f959adc21f119a7f3687';
+  // Mat & Chat: same diff pattern via Supabase
+  var _lastMC = { mc1: [] };
+
+  function _mcRowToRec(row) {
+    return {
+      name: row.name, email: row.email, signature: row.signature || '',
+      session: 'mc1', sessionLabel: 'Mat & Chat',
+      arrival: '11:25 AM', classStart: '11:30 AM',
+      time: row.time_str, timestamp: row.timestamp_iso,
+      code: row.code, type: row.type,
+      wlPosition: row.wl_position, clausesAgreed: row.clauses_agreed,
+      notes: row.notes || ''
+    };
+  }
+  function _mcRecToRow(rec) {
+    return {
+      name: rec.name, email: rec.email, signature: rec.signature || null,
+      time_str: rec.time, timestamp_iso: rec.timestamp,
+      code: rec.code, type: rec.type,
+      wl_position: rec.wlPosition || null,
+      clauses_agreed: rec.clausesAgreed || 0,
+      notes: rec.notes || null
+    };
+  }
 
   function getMCData(callback) {
-    fetch(MC_JSONBIN_URL + '/latest', {
-      headers: { 'X-Access-Key': JSONBIN_KEY }
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data){ callback(data.record || { mc1:[] }); })
-    .catch(function(){
-      try { callback(JSON.parse(localStorage.getItem(MC_STORAGE_KEY)) || { mc1:[] }); }
-      catch(e){ callback({ mc1:[] }); }
-    });
+    supabase.from('matchat_registrations').select('*').order('created_at')
+      .then(function(res){
+        var data = { mc1: (res.data || []).map(_mcRowToRec) };
+        _lastMC = JSON.parse(JSON.stringify(data));
+        try { localStorage.setItem(MC_STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+        callback(data);
+      }, function(){
+        try { callback(JSON.parse(localStorage.getItem(MC_STORAGE_KEY)) || { mc1:[] }); }
+        catch(e){ callback({ mc1:[] }); }
+      });
   }
 
   function saveMCData(d, callback) {
-    fetch(MC_JSONBIN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-      body: JSON.stringify(d)
-    })
-    .then(function(){
-      localStorage.setItem(MC_STORAGE_KEY, JSON.stringify(d));
-      if (callback) callback();
-    })
-    .catch(function(){
-      localStorage.setItem(MC_STORAGE_KEY, JSON.stringify(d));
-      if (callback) callback();
+    var oldCodes = {};
+    (_lastMC.mc1 || []).forEach(function(r){ if (r.code) oldCodes[r.code] = true; });
+    var newCodes = {};
+    var inserts = [];
+    (d.mc1 || []).forEach(function(r){
+      if (!r.code) return;
+      newCodes[r.code] = true;
+      if (!oldCodes[r.code]) inserts.push(_mcRecToRow(r));
     });
+    var deleteCodes = [];
+    (_lastMC.mc1 || []).forEach(function(r){
+      if (r.code && !newCodes[r.code]) deleteCodes.push(r.code);
+    });
+
+    var ops = [];
+    if (inserts.length)     ops.push(supabase.from('matchat_registrations').insert(inserts));
+    if (deleteCodes.length) ops.push(supabase.from('matchat_registrations').delete().in('code', deleteCodes));
+
+    var done = function(){
+      _lastMC = JSON.parse(JSON.stringify(d));
+      try { localStorage.setItem(MC_STORAGE_KEY, JSON.stringify(d)); } catch(e){}
+      if (callback) callback();
+    };
+    if (!ops.length) { done(); return; }
+    Promise.all(ops).then(done, done);
   }
 
-  // ── Corporate JSONBin ─────────────────────────────────────────────────────
-  var CORP_JSONBIN_URL  = 'https://api.jsonbin.io/v3/b/6a05e8d6250b1311c34d6dea';
-  var CORP_STORAGE_KEY  = 'auric_corporate';
+  // Corporate inquiries + bookings (two separate Supabase tables, exposed as one record)
+  var CORP_STORAGE_KEY = 'auric_corporate';
+  var _lastCorp = { inquiries: [], bookings: [] };
+
+  function _corpInqRowToRec(r){
+    return {
+      company_name: r.company_name, contact_name: r.contact_name, contact_email: r.contact_email,
+      contact_phone: r.contact_phone, industry: r.industry, referral_source: r.referral_source,
+      class_type: r.class_type, class_level: r.class_level, duration: r.duration,
+      frequency: r.frequency, headcount: r.headcount, experience: r.experience,
+      location: r.location, space_status: r.space_status, preferred_day: r.preferred_day,
+      timeline: r.timeline, theme: r.theme, budget: r.budget, injuries: r.injuries,
+      additional_notes: r.additional_notes, code: r.code,
+      time: r.time_str, timestamp: r.timestamp_iso
+    };
+  }
+  function _corpInqRecToRow(rec){
+    return {
+      company_name: rec.company_name, contact_name: rec.contact_name, contact_email: rec.contact_email,
+      contact_phone: rec.contact_phone || null, industry: rec.industry || null,
+      referral_source: rec.referral_source || null, class_type: rec.class_type || null,
+      class_level: rec.class_level || null, duration: rec.duration || null,
+      frequency: rec.frequency || null, headcount: rec.headcount || null,
+      experience: rec.experience || null, location: rec.location || null,
+      space_status: rec.space_status || null, preferred_day: rec.preferred_day || null,
+      timeline: rec.timeline || null, theme: rec.theme || null, budget: rec.budget || null,
+      injuries: rec.injuries || null, additional_notes: rec.additional_notes || null,
+      code: rec.code, time_str: rec.time, timestamp_iso: rec.timestamp
+    };
+  }
+  function _corpBookRowToRec(r){
+    return {
+      company_name: r.company_name, contact_name: r.contact_name, contact_email: r.contact_email,
+      headcount: r.headcount, session_date: r.session_date, location: r.location,
+      injuries: r.injuries, signature: r.signature, clauses_agreed: r.clauses_agreed,
+      code: r.code, sign_time: r.sign_time, timestamp: r.timestamp_iso
+    };
+  }
+  function _corpBookRecToRow(rec){
+    return {
+      company_name: rec.company_name, contact_name: rec.contact_name, contact_email: rec.contact_email,
+      headcount: rec.headcount || null, session_date: rec.session_date || null,
+      location: rec.location || null, injuries: rec.injuries || null,
+      signature: rec.signature || null, clauses_agreed: rec.clauses_agreed || 19,
+      code: rec.code, sign_time: rec.sign_time, timestamp_iso: rec.timestamp
+    };
+  }
 
   function getCorpData(callback) {
-    fetch(CORP_JSONBIN_URL + '/latest', {
-      headers: { 'X-Access-Key': JSONBIN_KEY }
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data){ callback(data.record || { inquiries:[], bookings:[] }); })
-    .catch(function(){
+    Promise.all([
+      supabase.from('corporate_inquiries').select('*').order('created_at'),
+      supabase.from('corporate_bookings').select('*').order('created_at')
+    ]).then(function(results){
+      var data = {
+        inquiries: (results[0].data || []).map(_corpInqRowToRec),
+        bookings:  (results[1].data || []).map(_corpBookRowToRec)
+      };
+      _lastCorp = JSON.parse(JSON.stringify(data));
+      try { localStorage.setItem(CORP_STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+      callback(data);
+    }, function(){
       try { callback(JSON.parse(localStorage.getItem(CORP_STORAGE_KEY)) || { inquiries:[], bookings:[] }); }
       catch(e){ callback({ inquiries:[], bookings:[] }); }
     });
   }
 
   function saveCorpData(d, callback) {
-    fetch(CORP_JSONBIN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-      body: JSON.stringify(d)
-    })
-    .then(function(){
-      localStorage.setItem(CORP_STORAGE_KEY, JSON.stringify(d));
-      if (callback) callback();
-    })
-    .catch(function(){
-      localStorage.setItem(CORP_STORAGE_KEY, JSON.stringify(d));
-      if (callback) callback();
+    var ops = [];
+
+    // Inquiries diff
+    var oldInqCodes = {};
+    (_lastCorp.inquiries || []).forEach(function(r){ if (r.code) oldInqCodes[r.code] = true; });
+    var newInqCodes = {};
+    var inqInserts = [];
+    (d.inquiries || []).forEach(function(r){
+      if (!r.code) return;
+      newInqCodes[r.code] = true;
+      if (!oldInqCodes[r.code]) inqInserts.push(_corpInqRecToRow(r));
     });
+    var inqDeletes = [];
+    (_lastCorp.inquiries || []).forEach(function(r){
+      if (r.code && !newInqCodes[r.code]) inqDeletes.push(r.code);
+    });
+    if (inqInserts.length) ops.push(supabase.from('corporate_inquiries').insert(inqInserts));
+    if (inqDeletes.length) ops.push(supabase.from('corporate_inquiries').delete().in('code', inqDeletes));
+
+    // Bookings diff
+    var oldBookCodes = {};
+    (_lastCorp.bookings || []).forEach(function(r){ if (r.code) oldBookCodes[r.code] = true; });
+    var newBookCodes = {};
+    var bookInserts = [];
+    (d.bookings || []).forEach(function(r){
+      if (!r.code) return;
+      newBookCodes[r.code] = true;
+      if (!oldBookCodes[r.code]) bookInserts.push(_corpBookRecToRow(r));
+    });
+    var bookDeletes = [];
+    (_lastCorp.bookings || []).forEach(function(r){
+      if (r.code && !newBookCodes[r.code]) bookDeletes.push(r.code);
+    });
+    if (bookInserts.length) ops.push(supabase.from('corporate_bookings').insert(bookInserts));
+    if (bookDeletes.length) ops.push(supabase.from('corporate_bookings').delete().in('code', bookDeletes));
+
+    var done = function(){
+      _lastCorp = JSON.parse(JSON.stringify(d));
+      try { localStorage.setItem(CORP_STORAGE_KEY, JSON.stringify(d)); } catch(e){}
+      if (callback) callback();
+    };
+    if (!ops.length) { done(); return; }
+    Promise.all(ops).then(done, done);
   }
 
   function mcConfirmedCount(data) {
@@ -1192,6 +1351,16 @@ document.addEventListener('DOMContentLoaded', function() {
     wlBtn.disabled = true; wlBtn.textContent = 'Saving...';
 
     getData(function(data) {
+      // Email dedup check
+      var existing = (data[selectedSession]||[]).filter(function(r){ return (r.email||'').toLowerCase() === email.toLowerCase(); })[0];
+      if (existing) {
+        wlBtn.disabled = false; wlBtn.textContent = 'Join Waitlist →';
+        var msg = existing.type === 'confirmed'
+          ? 'You\'re already registered for this session with ' + email + '.'
+          : 'You\'re already on the waitlist for this session (position #' + (existing.wlPosition || '?') + ').';
+        alert(msg);
+        return;
+      }
       var sess   = SESSIONS.find(function(s){ return s.id===selectedSession; });
       var wlPos  = data[selectedSession].filter(function(r){ return r.type==='waitlist'; }).length + 1;
       var code   = genCode();
@@ -1316,6 +1485,17 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.textContent = 'Saving...';
 
     getData(function(data) {
+      // Email dedup check
+      var existing = (data[selectedSession]||[]).filter(function(r){ return (r.email||'').toLowerCase() === email.toLowerCase(); })[0];
+      if (existing) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit & Reserve My Spot ✦';
+        var msg = existing.type === 'confirmed'
+          ? 'You\'re already registered for this session with the email ' + email + '. Check your inbox for your confirmation.'
+          : 'You\'re already on the waitlist for this session (position #' + (existing.wlPosition || '?') + ').';
+        alert(msg);
+        return;
+      }
       var now=new Date(); var timeStr=now.toLocaleString(); var code=genCode();
       var sess=SESSIONS.find(function(s){return s.id===selectedSession;});
       var confirmed=data[selectedSession].filter(function(r){return r.type==='confirmed';}).length;
@@ -1997,6 +2177,16 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.disabled=true; btn.textContent='Saving...';
 
     getMCData(function(data) {
+      // Email dedup check
+      var existing = (data.mc1||[]).filter(function(r){ return (r.email||'').toLowerCase() === email.toLowerCase(); })[0];
+      if (existing) {
+        btn.disabled=false; btn.textContent='Join Waitlist →';
+        var msg = existing.type === 'confirmed'
+          ? 'You\'re already registered for Mat & Chat with ' + email + '.'
+          : 'You\'re already on the Mat & Chat waitlist (position #' + (existing.wlPosition || '?') + ').';
+        alert(msg);
+        return;
+      }
       var wlPos = data.mc1.filter(function(r){ return r.type==='waitlist'; }).length + 1;
       var code = genCode(); var now = new Date(); var timeStr = now.toLocaleString();
       var notes = document.getElementById('mc-reg-notes').value.trim();
@@ -2098,6 +2288,16 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.disabled=true; submitBtn.textContent='Saving...';
 
     getMCData(function(data) {
+      // Email dedup check
+      var existing = (data.mc1||[]).filter(function(r){ return (r.email||'').toLowerCase() === email.toLowerCase(); })[0];
+      if (existing) {
+        submitBtn.disabled=false; submitBtn.textContent='Submit & Reserve My Spot ✦';
+        var msg = existing.type === 'confirmed'
+          ? 'You\'re already registered for Mat & Chat with ' + email + '. Check your inbox for your confirmation.'
+          : 'You\'re already on the Mat & Chat waitlist (position #' + (existing.wlPosition || '?') + ').';
+        alert(msg);
+        return;
+      }
       var confirmed = data.mc1.filter(function(r){ return r.type==='confirmed'; }).length;
       var type = confirmed < MC_MAX_SPOTS ? 'confirmed' : 'waitlist';
       var wlPos = type==='waitlist' ? data.mc1.filter(function(r){ return r.type==='waitlist'; }).length+1 : null;
@@ -2576,27 +2776,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 150);
   }
 
-  // ── Notify List JSONBin ───────────────────────────────────────────────────
-  var JSONBIN_NOTIFY_ID  = '69ff2348c0954111d8fb83bf';
-  var JSONBIN_NOTIFY_URL = 'https://api.jsonbin.io/v3/b/' + JSONBIN_NOTIFY_ID;
+  // Notify List (Coming Soon) — Supabase
+  var _lastNotify = { notify: [] };
 
   function getNotifyList(callback) {
-    fetch(JSONBIN_NOTIFY_URL + '/latest', {
-      headers: { 'X-Access-Key': JSONBIN_KEY }
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data){ callback(data.record || { notify:[] }); })
-    .catch(function(){ callback({ notify:[] }); });
+    supabase.from('notify_list').select('*').order('created_at')
+      .then(function(res){
+        var data = {
+          notify: (res.data || []).map(function(r){
+            return { id: r.id, name: r.name, email: r.email, time: r.time_str };
+          })
+        };
+        _lastNotify = JSON.parse(JSON.stringify(data));
+        callback(data);
+      }, function(){ callback({ notify: [] }); });
   }
 
   function saveNotifyList(d, callback) {
-    fetch(JSONBIN_NOTIFY_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-      body: JSON.stringify(d)
-    })
-    .then(function(){ if (callback) callback(); })
-    .catch(function(){ if (callback) callback(); });
+    // No "code" field on notify list — match by email instead
+    var oldEmails = {};
+    (_lastNotify.notify || []).forEach(function(r){ if (r.email) oldEmails[r.email.toLowerCase()] = r; });
+    var newEmails = {};
+    var inserts = [];
+    (d.notify || []).forEach(function(r){
+      if (!r.email) return;
+      var key = r.email.toLowerCase();
+      newEmails[key] = true;
+      if (!oldEmails[key]) inserts.push({ name: r.name, email: r.email, time_str: r.time });
+    });
+    var deleteEmails = [];
+    Object.keys(oldEmails).forEach(function(k){
+      if (!newEmails[k]) deleteEmails.push(oldEmails[k].email);
+    });
+
+    var ops = [];
+    if (inserts.length)      ops.push(supabase.from('notify_list').insert(inserts));
+    if (deleteEmails.length) ops.push(supabase.from('notify_list').delete().in('email', deleteEmails));
+
+    var done = function(){
+      _lastNotify = JSON.parse(JSON.stringify(d));
+      if (callback) callback();
+    };
+    if (!ops.length) { done(); return; }
+    Promise.all(ops).then(done, done);
   }
 
   // ── Notify Me ────────────────────────────────────────────────────────────
