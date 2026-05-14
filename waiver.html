@@ -280,6 +280,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -287,14 +288,14 @@ document.addEventListener('DOMContentLoaded', function() {
   var EMAILJS_SERVICE_ID  = 'service_9n4adla';
   var TMPL_ADMIN          = 'template_6qkcf8j';
 
-  // ── JSONBin setup ──────────────────────────────────────────────────────────
-  // To set up: create a new bin at https://jsonbin.io with content {"waivers":[]}
-  // then paste the bin ID below (replace the placeholder).
-  var JSONBIN_BIN_ID  = '6a05dc28c0954111d8222eb0';
-  var JSONBIN_KEY     = '$2a$10$1ifY2qQZ/Yp7VV26Db9sS.DwIuJB3bgI6sza239oPdQZluvvDzSp6';
-  var JSONBIN_URL     = 'https://api.jsonbin.io/v3/b/' + JSONBIN_BIN_ID;
+  // ── Supabase client ────────────────────────────────────────────────────────
+  var supabase = window.supabase.createClient(
+    'https://qvmiwyxerotkqpbuhpun.supabase.co',
+    'sb_publishable_PHihtZqr-zBTcppyHSwSjg_klBABTpJ'
+  );
   var STORAGE_KEY     = 'auric_standalone_waivers';
   var TOTAL_CLAUSES   = 19;
+  var _lastWaivers = { waivers: [] };
 
   if (typeof emailjs !== 'undefined') emailjs.init(EMAILJS_PUBLIC_KEY);
 
@@ -332,40 +333,62 @@ document.addEventListener('DOMContentLoaded', function() {
   function escapeHTML(str){ var d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
   function genCode(){ return 'AUR-' + Math.random().toString(36).substr(2,6).toUpperCase(); }
 
+  function _wRowToRec(r){
+    return {
+      name: r.name, email: r.email, signature: r.signature || '',
+      eventName: r.event_name || '', eventDate: r.event_date || '',
+      time: r.time_str, timestamp: r.timestamp_iso,
+      code: r.code, clausesAgreed: r.clauses_agreed || 19
+    };
+  }
+  function _wRecToRow(rec){
+    return {
+      name: rec.name, email: rec.email, signature: rec.signature || null,
+      event_name: rec.eventName || null, event_date: rec.eventDate || null,
+      time_str: rec.time, timestamp_iso: rec.timestamp,
+      code: rec.code, clauses_agreed: rec.clausesAgreed || 19
+    };
+  }
+
   function getData(callback) {
-    if (JSONBIN_BIN_ID === 'REPLACE_WITH_YOUR_BIN_ID') {
-      try { callback(JSON.parse(localStorage.getItem(STORAGE_KEY)) || { waivers:[] }); }
-      catch(e){ callback({ waivers:[] }); }
-      return;
-    }
-    fetch(JSONBIN_URL + '/latest', { headers: { 'X-Access-Key': JSONBIN_KEY } })
-      .then(function(r){ return r.json(); })
-      .then(function(data){ callback(data.record || { waivers:[] }); })
-      .catch(function(){
+    supabase.from('standalone_waivers').select('*').order('created_at')
+      .then(function(res){
+        var data = { waivers: (res.data || []).map(_wRowToRec) };
+        _lastWaivers = JSON.parse(JSON.stringify(data));
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+        callback(data);
+      }, function(){
         try { callback(JSON.parse(localStorage.getItem(STORAGE_KEY)) || { waivers:[] }); }
         catch(e){ callback({ waivers:[] }); }
       });
   }
 
   function saveData(d, callback) {
-    if (JSONBIN_BIN_ID === 'REPLACE_WITH_YOUR_BIN_ID') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
+    var oldCodes = {};
+    (_lastWaivers.waivers || []).forEach(function(r){ if (r.code) oldCodes[r.code] = true; });
+    var newCodes = {};
+    var inserts = [];
+    (d.waivers || []).forEach(function(r){
+      if (!r.code) return;
+      newCodes[r.code] = true;
+      if (!oldCodes[r.code]) inserts.push(_wRecToRow(r));
+    });
+    var deleteCodes = [];
+    (_lastWaivers.waivers || []).forEach(function(r){
+      if (r.code && !newCodes[r.code]) deleteCodes.push(r.code);
+    });
+
+    var ops = [];
+    if (inserts.length)     ops.push(supabase.from('standalone_waivers').insert(inserts));
+    if (deleteCodes.length) ops.push(supabase.from('standalone_waivers').delete().in('code', deleteCodes));
+
+    var done = function(){
+      _lastWaivers = JSON.parse(JSON.stringify(d));
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e){}
       if (callback) callback();
-      return;
-    }
-    fetch(JSONBIN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_KEY },
-      body: JSON.stringify(d)
-    })
-      .then(function(){
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-        if (callback) callback();
-      })
-      .catch(function(){
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(d));
-        if (callback) callback();
-      });
+    };
+    if (!ops.length) { done(); return; }
+    Promise.all(ops).then(done, done);
   }
 
   // Live signer name in statement
