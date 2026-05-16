@@ -208,6 +208,10 @@
       #tab-corporate { padding-left:0; padding-right:0; }
       #tab-corporate > div { padding-left:1rem; padding-right:1rem; }
     }
+
+    /* Stripe Buy Button: keep within container on all screens */
+    stripe-buy-button { display:inline-block; max-width:100%; }
+    stripe-buy-button > * { max-width:100% !important; }
   </style>
 </head>
 <body>
@@ -223,6 +227,7 @@
 
 <nav class="tabs-nav" role="tablist" aria-label="Navigation">
   <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-events" id="btn-events">Events</button>
+  <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-past" id="btn-past">Past Events</button>
   <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-corporate" id="btn-corporate">Corporate Event Inquiries</button>
 </nav>
 
@@ -234,7 +239,7 @@
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;">
 
       <!-- Pilates x Niara card -->
-      <button type="button" id="event-card-pilates" style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:0;cursor:pointer;text-align:left;transition:all .2s;box-shadow:0 2px 12px rgba(92,74,58,.06);overflow:hidden;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(92,74,58,.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(92,74,58,.06)'">
+      <button type="button" id="event-card-pilates" data-event-date="2026-06-19" data-event-name="Pilates x Niara" style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:0;cursor:pointer;text-align:left;transition:all .2s;box-shadow:0 2px 12px rgba(92,74,58,.06);overflow:hidden;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(92,74,58,.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(92,74,58,.06)'">
         <img src="flyer.png" alt="Pilates x Niara — June 19th" style="width:100%;height:180px;object-fit:cover;object-position:top;display:block;">
         <div style="padding:1rem 1.25rem 1.25rem;">
           <div style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.35rem;">June 19th</div>
@@ -246,7 +251,7 @@
       </button>
 
       <!-- Mat & Chat card -->
-      <button type="button" id="event-card-matchat" style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:0;cursor:pointer;text-align:left;transition:all .2s;box-shadow:0 2px 12px rgba(92,74,58,.06);overflow:hidden;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(92,74,58,.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(92,74,58,.06)'">
+      <button type="button" id="event-card-matchat" data-event-date="2026-08-01" data-event-name="Mat &amp; Chat" style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:0;cursor:pointer;text-align:left;transition:all .2s;box-shadow:0 2px 12px rgba(92,74,58,.06);overflow:hidden;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(92,74,58,.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(92,74,58,.06)'">
         <img src="flyer2.png" alt="Mat and Chat — August 1st" style="width:100%;height:180px;object-fit:cover;object-position:top;display:block;">
         <div style="padding:1rem 1.25rem 1.25rem;">
           <div style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:.35rem;">August 1st</div>
@@ -276,6 +281,16 @@
     </div>
   </div>
 </div><!-- /tab-events -->
+
+<!-- TAB: Past Events -->
+<div id="tab-past" class="tab-panel" role="tabpanel" aria-labelledby="btn-past">
+  <div style="max-width:1100px;margin:0 auto;padding:2rem 1.25rem 4rem;">
+    <p style="font-size:.88rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.7;">Events that have already taken place.</p>
+    <div id="past-events-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;">
+      <div id="past-events-empty" class="empty-state" style="grid-column:1/-1;">No past events yet — events appear here automatically after their date passes.</div>
+    </div>
+  </div>
+</div><!-- /tab-past -->
 
 <!-- TAB: Pilates x Niara -->
 <div id="tab-current" class="tab-panel" role="tabpanel" aria-labelledby="btn-events">
@@ -438,13 +453,8 @@
           <a id="stripe-pay-btn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="text-decoration:none;margin-top:.75rem;font-size:.85rem;">💳 Complete Payment →</a>
           <p style="font-size:.75rem;color:var(--text-muted);margin-top:.5rem;">Already paid? You're all set — watch for your confirmation email.</p>
         </div>
-        <div style="margin-top:1rem;padding:1rem 1.25rem;background:#faf5ee;border:1px solid var(--border);border-radius:10px;text-align:left;">
-          <p style="font-size:.85rem;color:var(--brown);font-weight:700;margin-bottom:.35rem;">📋 Studio Waiver Required</p>
-          <p style="font-size:.85rem;color:#3d322a;line-height:1.7;">You must also sign The Space Pilates Studio's waiver before attending:</p>
-          <a href="https://app.waiversign.com/e/5dea878fd3241f001981567e/doc/5dea8941d3241f001981582c?event=none" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:.6rem;color:var(--gold);font-weight:700;font-size:.85rem;">Sign the Studio Waiver →</a>
-        </div>
         <div style="margin-top:1rem;padding:.75rem 1rem;background:#fef9e7;border:1px solid #f0dca0;border-radius:10px;font-size:.82rem;color:#7a6320;line-height:1.6;">
-          📬 <strong>Can't find your waiver email?</strong> Please check your <strong>spam or junk folder</strong> and mark it as "Not Spam".
+          📬 <strong>Can't find your confirmation email?</strong> Please check your <strong>spam or junk folder</strong> and mark it as "Not Spam". The studio waiver link will be inside.
         </div>
         <div class="success-actions">
           <button type="button" id="download-waiver-btn" class="btn btn-secondary">📄 Download My Waiver (PDF)</button>
@@ -1324,6 +1334,14 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   function escapeHTML(str) { var d=document.createElement('div'); d.textContent=str; return d.innerHTML; }
 
+  // Returns true if a given event date (YYYY-MM-DD) is in the past
+  function isEventPast(dateStr) {
+    var today = new Date(); today.setHours(0,0,0,0);
+    return today > new Date(dateStr + 'T00:00:00');
+  }
+  var PILATES_EVENT_DATE = '2026-06-19';
+  var MC_EVENT_DATE      = '2026-08-01';
+
   function adminNotesField(table, code, existingNote) {
     var safe = escapeHTML(existingNote || '');
     return '<textarea class="admin-note-input" data-table="'+table+'" data-code="'+code+'" placeholder="📝 Admin notes (auto-saves)…" style="width:100%;margin-top:.5rem;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-family:\'Jost\',sans-serif;font-size:.78rem;background:#fdfbf7;resize:vertical;min-height:36px;box-sizing:border-box;color:#3d322a;">'+safe+'</textarea>';
@@ -1332,6 +1350,65 @@ document.addEventListener('DOMContentLoaded', function() {
   var steps = ['step-register','step-waiver','step-confirmed','step-waitlist'];
   function showStep(id) {
     steps.forEach(function(s){ document.getElementById(s).classList.toggle('hidden', s!==id); });
+  }
+
+  // For Mat & Chat (uses Stripe Buy Button, not URL): shows a modal with the embedded buy button
+  function showMCPaymentOverlay(buyBtnId, publishableKey, price) {
+    var existing = document.getElementById('payment-countdown-overlay');
+    if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'payment-countdown-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(44,26,14,.85);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn .3s;';
+    overlay.innerHTML =
+      '<div style="background:#fff;border-radius:16px;padding:2rem;max-width:420px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.4);">' +
+        '<div style="font-size:3rem;color:var(--gold);margin-bottom:.5rem;">✦</div>' +
+        '<h2 style="font-family:\'Playfair Display\',serif;color:var(--brown);font-size:1.4rem;margin-bottom:.5rem;">Waiver signed!</h2>' +
+        '<p style="color:#3d322a;font-size:.95rem;margin-bottom:.4rem;">Your spot is held. Complete payment now to confirm.</p>' +
+        '<p style="color:var(--text-muted);font-size:.8rem;margin-bottom:1rem;">Payment is required to confirm your spot.</p>' +
+        '<div style="margin:1.25rem 0;display:flex;justify-content:center;">' +
+          '<stripe-buy-button buy-button-id="' + buyBtnId + '" publishable-key="' + publishableKey + '"></stripe-buy-button>' +
+        '</div>' +
+        '<p style="color:var(--text-muted);font-size:.72rem;margin-bottom:.75rem;">Stripe opens in a new tab. Return here after paying.</p>' +
+        '<button type="button" id="payment-cancel-mc" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.78rem;text-decoration:underline;font-family:\'Jost\',sans-serif;padding:.4rem;">Pay later (I\'ll lose my spot)</button>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    document.getElementById('payment-cancel-mc').addEventListener('click', function(){ overlay.remove(); });
+  }
+
+  // Shows a 5-second countdown then redirects to Stripe (Option 2: force payment after waiver)
+  function showPaymentRedirectCountdown(stripeUrl) {
+    var existing = document.getElementById('payment-countdown-overlay');
+    if (existing) existing.remove();
+    var overlay = document.createElement('div');
+    overlay.id = 'payment-countdown-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(44,26,14,.85);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn .3s;';
+    overlay.innerHTML =
+      '<div style="background:#fff;border-radius:16px;padding:2rem 2rem;max-width:420px;width:100%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.4);">' +
+        '<div style="font-size:3rem;color:var(--gold);margin-bottom:.5rem;">✦</div>' +
+        '<h2 style="font-family:\'Playfair Display\',serif;color:var(--brown);font-size:1.4rem;margin-bottom:.5rem;">Waiver signed!</h2>' +
+        '<p style="color:#3d322a;font-size:.95rem;margin-bottom:.4rem;">Your spot is held. Redirecting you to secure payment in <strong id="payment-countdown-num">5</strong>…</p>' +
+        '<p style="color:var(--text-muted);font-size:.8rem;margin-bottom:1.25rem;">Payment is required to confirm your spot.</p>' +
+        '<a id="payment-go-now-btn" href="' + stripeUrl + '" class="btn btn-primary" style="text-decoration:none;width:100%;justify-content:center;margin-bottom:.5rem;">💳 Pay now →</a>' +
+        '<button type="button" id="payment-cancel-redirect" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.78rem;text-decoration:underline;font-family:\'Jost\',sans-serif;padding:.4rem;">Pay later (I\'ll lose my spot)</button>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    var count = 5;
+    var timer = setInterval(function(){
+      count--;
+      var el = document.getElementById('payment-countdown-num');
+      if (el) el.textContent = count;
+      if (count <= 0) {
+        clearInterval(timer);
+        window.location.href = stripeUrl;
+      }
+    }, 1000);
+    document.getElementById('payment-cancel-redirect').addEventListener('click', function(){
+      clearInterval(timer);
+      overlay.remove();
+    });
+    document.getElementById('payment-go-now-btn').addEventListener('click', function(){
+      clearInterval(timer);
+    });
   }
 
   // Build session cards
@@ -1558,8 +1635,10 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('stripe-pay-btn').href      = sess.stripeUrl;
           showStep('step-confirmed');
           document.getElementById('step-confirmed').scrollIntoView({behavior:'smooth'});
-          announce('Waiver signed! Please complete payment to confirm your spot.');
+          announce('Waiver signed! Redirecting to payment...');
           sendConfirmEmail(record);
+          // Auto-redirect to Stripe in same tab after a short delay (Option 2 — force payment after waiver)
+          showPaymentRedirectCountdown(sess.stripeUrl);
         } else {
           document.getElementById('wl-name').textContent    = name;
           document.getElementById('wl-email').textContent   = email;
@@ -1848,8 +1927,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     getData(function(data){
       sessionsContainer.innerHTML='';
+      var pilatesPast = isEventPast(PILATES_EVENT_DATE);
       SESSIONS.forEach(function(sess){
-        var block=document.createElement('div'); block.className='admin-session-block';
+        var block=document.createElement('div'); block.className='admin-session-block' + (pilatesPast?' collapsed':'');
         var confirmed=data[sess.id].filter(function(r){return r.type==='confirmed';});
         var waitlist=data[sess.id].filter(function(r){return r.type==='waitlist';});
         block.innerHTML='<h3>'+sess.label+' · '+confirmed.length+'/'+MAX_PER_SESSION+' confirmed · '+waitlist.length+' waitlisted</h3>';
@@ -1890,7 +1970,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Mat & Chat section
     getMCData(function(mcData){
-      var mcBlock = document.createElement('div'); mcBlock.className='admin-session-block';
+      var mcBlock = document.createElement('div'); mcBlock.className='admin-session-block' + (isEventPast(MC_EVENT_DATE)?' collapsed':'');
       var mcConfirmed = mcData.mc1.filter(function(r){ return r.type==='confirmed'; });
       var mcWaitlist  = mcData.mc1.filter(function(r){ return r.type==='waitlist'; });
       var mcConfirmedSpots = mcConfirmed.reduce(function(sum,r){ return sum + (r.isPair?2:1); }, 0);
@@ -2449,6 +2529,8 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('mc-page-layout').classList.remove('waiver-active');
           document.getElementById('mc-step-confirmed').scrollIntoView({behavior:'smooth'});
           announce('Waiver signed! Complete payment to confirm your spot.');
+          // Force payment after waiver (Option 2 — Mat & Chat overlay shows the Stripe Buy Button)
+          showMCPaymentOverlay(isPair ? MC_PAIR_BUY_BTN_ID : MC_SOLO_BUY_BTN_ID, MC_STRIPE_PUBLISHABLE, isPair ? MC_PAIR_PRICE : MC_SOLO_PRICE);
           if(typeof emailjs!=='undefined'){
             emailjs.send(EMAILJS_SERVICE_ID, TMPL_ADMIN, {
               from_name:name, to_email:email, session_label:'Mat & Chat — August 1st' + (isPair?' (PAIR)':''),
@@ -2820,7 +2902,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // ── Events Hub ────────────────────────────────────────────────────────────
 
   function showAllPanels(activeId) {
-    var allPanels = ['tab-events','tab-current','tab-matchat','tab-coming','tab-corporate'];
+    var allPanels = ['tab-events','tab-current','tab-matchat','tab-coming','tab-past','tab-corporate'];
     allPanels.forEach(function(id){
       var el = document.getElementById(id);
       if (!el) return;
@@ -2854,6 +2936,57 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   updateEventCardSpots();
 
+  // Auto-move past events to the Past Events tab
+  (function movePastEvents(){
+    var today = new Date(); today.setHours(0,0,0,0);
+    var pastGrid  = document.getElementById('past-events-grid');
+    var emptyEl   = document.getElementById('past-events-empty');
+    var cards = document.querySelectorAll('#tab-events button[data-event-date]');
+    var moved = 0;
+    cards.forEach(function(card){
+      var dateStr = card.getAttribute('data-event-date');
+      if (!dateStr) return;
+      var eventDate = new Date(dateStr + 'T00:00:00');
+      // Mark past if today is the day AFTER the event (so it's still "current" on event day)
+      if (today > eventDate) {
+        var pastCard = card.cloneNode(true);
+        pastCard.id = card.id + '-past';
+        pastCard.style.cursor = 'default';
+        pastCard.style.opacity = '.75';
+        pastCard.removeAttribute('onmouseover');
+        pastCard.removeAttribute('onmouseout');
+        // Remove any spot count + register link
+        var spotsEl = pastCard.querySelector('[id$="-card-spots"]');
+        if (spotsEl) spotsEl.remove();
+        var regLink = pastCard.querySelector('div[style*="Register"], div:last-child');
+        // Swap the "Register →" line for a "Past Event" badge
+        var inner = pastCard.querySelectorAll('div > div');
+        var lastDiv = pastCard.querySelector('div:nth-of-type(2) > div:last-of-type');
+        if (lastDiv) {
+          lastDiv.style.color = 'var(--text-muted)';
+          lastDiv.innerHTML = 'Past Event';
+        }
+        // Add a "PAST EVENT" badge over the flyer image
+        var imgWrap = pastCard.querySelector('img');
+        if (imgWrap && imgWrap.parentNode === pastCard) {
+          imgWrap.style.filter = 'grayscale(.4) brightness(.92)';
+          var badge = document.createElement('div');
+          badge.style.cssText = 'position:absolute;top:.6rem;right:.6rem;background:var(--brown);color:#fff;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .6rem;border-radius:20px;';
+          badge.textContent = 'Past Event';
+          pastCard.style.position = 'relative';
+          pastCard.appendChild(badge);
+        }
+        // Replace primary click behavior with no-op
+        pastCard.addEventListener('click', function(e){ e.preventDefault(); });
+        pastGrid.appendChild(pastCard);
+        // Hide the original from the Events hub
+        card.style.display = 'none';
+        moved++;
+      }
+    });
+    if (moved > 0 && emptyEl) emptyEl.remove();
+  })();
+
   // Event card clicks
   document.getElementById('event-card-pilates').addEventListener('click', function(){
     showAllPanels('tab-current');
@@ -2886,7 +3019,7 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.classList.add('active');
       btn.setAttribute('aria-selected','true');
       var target = btn.getAttribute('aria-controls');
-      var allPanels = ['tab-events','tab-current','tab-matchat','tab-coming','tab-corporate'];
+      var allPanels = ['tab-events','tab-current','tab-matchat','tab-coming','tab-past','tab-corporate'];
       allPanels.forEach(function(id){
         var el = document.getElementById(id);
         if (!el) return;
@@ -2898,7 +3031,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function switchTab(tabId) {
     document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
-    var allPanels = ['tab-events','tab-current','tab-matchat','tab-coming','tab-corporate'];
+    var allPanels = ['tab-events','tab-current','tab-matchat','tab-coming','tab-past','tab-corporate'];
     allPanels.forEach(function(id){
       var el = document.getElementById(id);
       if (el) el.classList.toggle('active', id === tabId);
